@@ -59,26 +59,28 @@ export function ResultsArea() {
        try {
           const plotData = JSON.parse(parts[1]);
           return (
-            <div className="w-full">
+            <div className="w-full overflow-hidden">
               {beforeHtml && <div dangerouslySetInnerHTML={{ __html: beforeHtml }} className="mb-4" />}
-              <Plot 
-                data={plotData.data} 
-                layout={{...plotData.layout, autosize: true, margin: { t: 40, r: 20, l: 40, b: 40 }}} 
-                useResizeHandler={true}
-                style={{ width: '100%', height: '400px' }}
-                config={{ 
-                  responsive: true, 
-                  displayModeBar: true,
-                  modeBarButtonsToRemove: ['lasso2d', 'select2d'],
-                  toImageButtonOptions: {
-                    format: 'png',
-                    filename: 'statstudio_plot',
-                    height: 500,
-                    width: 700,
-                    scale: 2
-                  }
-                }}
-              />
+              <div className="w-full overflow-x-auto">
+                <Plot 
+                  data={plotData.data} 
+                  layout={{...plotData.layout, autosize: true, margin: { t: 40, r: 20, l: 40, b: 40 }}} 
+                  useResizeHandler={true}
+                  style={{ width: '100%', minHeight: '400px' }}
+                  config={{ 
+                    responsive: true, 
+                    displayModeBar: true,
+                    modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+                    toImageButtonOptions: {
+                      format: 'png',
+                      filename: 'statstudio_plot',
+                      height: 500,
+                      width: 700,
+                      scale: 2
+                    }
+                  }}
+                />
+              </div>
             </div>
           );
        } catch(e) {
@@ -86,26 +88,30 @@ export function ResultsArea() {
        }
     }
 
-    return <div dangerouslySetInnerHTML={{ __html: res.output }} className="prose max-w-none prose-table:w-full prose-table:border-collapse prose-th:border prose-th:p-2 prose-th:bg-slate-50 prose-td:border prose-td:p-2" />;
+    return (
+      <div className="w-full">
+         <div dangerouslySetInnerHTML={{ __html: res.output }} className="prose max-w-none prose-table:w-full prose-table:border-collapse prose-th:border prose-th:p-2 prose-th:bg-slate-50 prose-td:border prose-td:p-2 overflow-x-auto" />
+      </div>
+    );
   };
 
   if (results.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center text-slate-400">
+      <div className="flex-1 flex items-center justify-center text-slate-400 italic bg-white p-8">
         <p>Run an analysis to see results</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col flex-1 h-full min-h-0 bg-white">
       <div className="px-4 py-3 border-b flex justify-between items-center bg-slate-50 shrink-0">
         <h3 className="font-semibold text-slate-700">Results Output</h3>
         <Button variant="ghost" size="sm" onClick={clearResults} className="h-8 text-slate-500 hover:text-red-600">
           <Trash2 className="w-4 h-4 mr-2" /> Clear All
         </Button>
       </div>
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
          <div className="p-6 space-y-8 pb-10">
            {results.map((res) => {
              const libraries = res.libraries || extractLibraries(res.code);
@@ -137,7 +143,7 @@ export function ResultsArea() {
                    </div>
                  )}
 
-                 <div className="p-5 overflow-x-auto text-sm text-slate-800">
+                 <div className="p-5 overflow-hidden text-sm text-slate-800">
                    {renderContent(res)}
                  </div>
                </div>

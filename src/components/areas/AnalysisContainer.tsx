@@ -24,12 +24,12 @@ export function AnalysisContainer({ categories }: Props) {
   if (!activeSpec) return null;
 
   return (
-    <div className="flex flex-col xl:flex-row gap-6 h-full min-h-0 p-3 md:p-5 overflow-hidden">
+    <div className="flex flex-col xl:flex-row gap-6 flex-1 min-h-0 p-3 md:p-5 overflow-y-auto xl:overflow-hidden">
       {/* Left side: Navigation & Config */}
-      <div className="w-full xl:w-[420px] shrink-0 flex flex-col md:flex-row xl:flex-col gap-4 h-[50%] xl:h-full min-h-0">
-        <div className="w-full md:w-44 xl:w-full bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col shadow-sm shrink-0">
+      <div className="w-full xl:w-[420px] shrink-0 flex flex-col md:flex-row xl:flex-col gap-4 h-auto xl:h-full">
+        <div className="w-full md:w-44 xl:w-full bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col shadow-sm shrink-0 h-auto md:h-auto xl:h-auto min-h-[200px]">
           <div className="p-2.5 bg-slate-50 border-b font-bold text-[10px] uppercase tracking-wider text-slate-400">Analyses</div>
-          <ScrollArea className="flex-1">
+          <ScrollArea className="flex-1 xl:max-h-none max-h-[300px]">
             <div className="flex flex-col p-1.5 space-y-0.5">
               {categories.map(cat => (
                 <button
@@ -48,12 +48,12 @@ export function AnalysisContainer({ categories }: Props) {
           </ScrollArea>
         </div>
 
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-           <Card className="border-slate-200 shadow-sm h-full rounded-xl overflow-hidden flex flex-col bg-white">
+        <div className="flex-1 flex flex-col min-h-0">
+           <Card className="border-slate-200 shadow-sm h-full xl:h-full rounded-xl overflow-hidden flex flex-col bg-white min-h-[300px]">
               <div className="p-2.5 bg-slate-50 border-b font-bold text-[10px] uppercase tracking-wider text-slate-400">
                 Configuration
               </div>
-              <ScrollArea className="flex-1">
+              <ScrollArea className="flex-1 max-h-[400px] xl:max-h-none">
                 <CardContent className="p-4">
                   {activeSpec.component}
                 </CardContent>
@@ -63,7 +63,7 @@ export function AnalysisContainer({ categories }: Props) {
       </div>
 
       {/* Right side: Results */}
-      <div className="flex-1 overflow-hidden min-h-[50%] xl:h-full bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col">
+      <div className="flex-1 min-h-[400px] xl:h-full bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
          <ResultsArea />
       </div>
     </div>

@@ -48,14 +48,13 @@ export function DataTabView() {
       </div>
       
       <ScrollArea className="flex-1 border-t">
-        <div className="min-w-full inline-block align-middle">
-          <div className="overflow-hidden">
-            <Table>
-              <TableHeader className="bg-slate-100/50 sticky top-0 z-20 shadow-sm">
+        <div className="w-fit min-w-full">
+          <Table className="w-auto min-w-full">
+            <TableHeader className="bg-slate-100/50 sticky top-0 z-20 shadow-sm">
               <TableRow>
                 <TableHead className="w-[50px] text-center border-r bg-slate-100">#</TableHead>
                 {columns.map(c => (
-                  <TableHead key={c.name} className="whitespace-nowrap border-r font-semibold bg-slate-100">
+                  <TableHead key={c.name} className="whitespace-nowrap border-r font-semibold bg-slate-100 px-4">
                     {c.name}
                   </TableHead>
                 ))}
@@ -66,7 +65,7 @@ export function DataTabView() {
                 <TableRow key={idx}>
                   <TableCell className="text-center border-r text-slate-400 bg-slate-50/50 text-[10px]">{idx + 1}</TableCell>
                   {columns.map(c => (
-                    <TableCell key={c.name} className="whitespace-nowrap border-r text-xs py-2" title={String(row[c.name])}>
+                    <TableCell key={c.name} className="whitespace-nowrap border-r text-xs py-2 px-4" title={String(row[c.name])}>
                       {row[c.name] !== null ? String(row[c.name]) : <span className="text-slate-300 italic">NaN</span>}
                     </TableCell>
                   ))}
@@ -82,8 +81,7 @@ export function DataTabView() {
             </TableBody>
           </Table>
         </div>
-      </div>
-      <ScrollBar orientation="horizontal" />
+        <ScrollBar orientation="horizontal" />
       </ScrollArea>
     </div>
   );

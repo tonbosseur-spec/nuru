@@ -12,24 +12,33 @@ self.onmessage = async (event) => {
         pyodide = await loadPyodide({
           indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/',
         });
-        self.postMessage({ type: 'STATUS', status: 'Loading pandas...' });
-        await pyodide.loadPackage('pandas');
-        self.postMessage({ type: 'STATUS', status: 'Loading numpy & scipy...' });
-        await pyodide.loadPackage(['numpy', 'scipy']);
-        self.postMessage({ type: 'STATUS', status: 'Loading scikit-learn & statsmodels...' });
-        await pyodide.loadPackage(['scikit-learn', 'statsmodels', 'micropip']);
+        self.postMessage({ type: 'STATUS', status: 'Loading pandas, numpy, scipy...' });
+        try {
+          await pyodide.loadPackage(['pandas', 'numpy', 'scipy', 'scikit-learn', 'statsmodels', 'micropip']);
+        } catch (err) {
+          console.error("Failed to load built-in packages:", err);
+          // Try loading them individually or skip extras
+          const corePkgs = ['pandas', 'numpy', 'scipy', 'micropip'];
+          for (const pkg of corePkgs) {
+             try { await pyodide.loadPackage(pkg); } catch (e) {}
+          }
+        }
         
-        self.postMessage({ type: 'STATUS', status: 'Installing dependencies...' });
+        self.postMessage({ type: 'STATUS', status: 'Finalizing Python environment...' });
         // Setup Python environment
         await pyodide.runPythonAsync(`
 import micropip
-try:
-    await micropip.install(["plotly", "openpyxl"])
-except Exception as e:
-    print(f"Warning: Install failed: {e}")
-
 import sys
 import io
+
+async def setup_deps():
+    try:
+        await micropip.install(["plotly", "openpyxl"])
+    except Exception as e:
+        print(f"Warning: Dependency install failed: {e}")
+
+await setup_deps()
+
 import pandas as pd
 import numpy as np
 import scipy.stats as stats

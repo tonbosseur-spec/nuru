@@ -2,11 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useStore } from '@/src/store';
 import { engine } from '@/src/lib/pythonEngine';
 import { DataImport } from '../DataImport';
-import { Console } from '../Console';
 import { DataTabView } from '../DataTabView';
 import { Toaster } from '@/components/ui/sonner';
 import { Button } from '@/components/ui/button';
-import { Terminal as TerminalIcon, Home, Edit2, Save } from 'lucide-react';
+import { Home, Edit2, Save } from 'lucide-react';
 
 import { DescriptiveArea } from '../areas/DescriptiveArea';
 import { TestsArea } from '../areas/TestsArea';
@@ -22,9 +21,7 @@ export function AppLayout() {
     datasetName, 
     workspaceName,
     updateWorkspaceName,
-    closeWorkspace,
-    consoleVisible, 
-    toggleConsole 
+    closeWorkspace
   } = useStore();
   const [activeTab, setActiveTab] = useState('fichier');
   const [isEditingName, setIsEditingName] = useState(false);
@@ -92,20 +89,6 @@ export function AppLayout() {
           )}
 
           <div className="h-6 w-px bg-slate-200 mx-2"></div>
-          {datasetName && (
-            <div className="flex items-center space-x-2">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={toggleConsole} 
-                className={`h-8 w-8 ${consoleVisible ? 'text-blue-600' : 'text-slate-400'}`}
-                title="Toggle Console"
-              >
-                <TerminalIcon className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
-          <div className="h-6 w-px bg-slate-200 mx-2"></div>
           {datasetName ? (
             <div className="flex items-center space-x-4">
               <div className="text-sm font-medium text-slate-600 hidden md:block">
@@ -140,9 +123,8 @@ export function AppLayout() {
         </aside>
 
         {/* Center Content */}
-        <main className="flex-1 flex flex-col min-w-0 bg-slate-50 overflow-y-auto">
+        <main className="flex-1 flex flex-col min-w-0 bg-slate-50 overflow-hidden">
           {renderContent()}
-          {consoleVisible && <Console />}
         </main>
       </div>
       <Toaster position="top-right" richColors />
