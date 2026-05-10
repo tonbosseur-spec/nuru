@@ -47,14 +47,15 @@ export function DataTabView() {
         <p className="text-sm text-slate-500">Showing first {Math.min(rowCount, 100)} of {rowCount} rows</p>
       </div>
       
-      <ScrollArea className="flex-1">
-        <div className="w-full">
-          <Table>
-            <TableHeader className="bg-slate-100/50 sticky top-0 z-10 shadow-sm">
+      <ScrollArea className="flex-1 border-t">
+        <div className="min-w-full inline-block align-middle">
+          <div className="overflow-hidden">
+            <Table>
+              <TableHeader className="bg-slate-100/50 sticky top-0 z-20 shadow-sm">
               <TableRow>
-                <TableHead className="w-[50px] text-center border-r">#</TableHead>
+                <TableHead className="w-[50px] text-center border-r bg-slate-100">#</TableHead>
                 {columns.map(c => (
-                  <TableHead key={c.name} className="whitespace-nowrap border-r font-semibold">
+                  <TableHead key={c.name} className="whitespace-nowrap border-r font-semibold bg-slate-100">
                     {c.name}
                   </TableHead>
                 ))}
@@ -63,9 +64,9 @@ export function DataTabView() {
             <TableBody>
               {data.map((row, idx) => (
                 <TableRow key={idx}>
-                  <TableCell className="text-center border-r text-slate-400 bg-slate-50/50">{idx + 1}</TableCell>
+                  <TableCell className="text-center border-r text-slate-400 bg-slate-50/50 text-[10px]">{idx + 1}</TableCell>
                   {columns.map(c => (
-                    <TableCell key={c.name} className="whitespace-nowrap border-r truncate max-w-[200px]" title={String(row[c.name])}>
+                    <TableCell key={c.name} className="whitespace-nowrap border-r text-xs py-2" title={String(row[c.name])}>
                       {row[c.name] !== null ? String(row[c.name]) : <span className="text-slate-300 italic">NaN</span>}
                     </TableCell>
                   ))}
@@ -81,7 +82,8 @@ export function DataTabView() {
             </TableBody>
           </Table>
         </div>
-        <ScrollBar orientation="horizontal" />
+      </div>
+      <ScrollBar orientation="horizontal" />
       </ScrollArea>
     </div>
   );

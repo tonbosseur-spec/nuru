@@ -63,10 +63,11 @@ export function AppLayout() {
             <Home className="w-5 h-5 text-slate-600" />
           </Button>
           
-          <div className="font-bold text-xl text-slate-800 tracking-tight flex items-center">
-            <span className="bg-blue-600 text-white w-8 h-8 rounded shrink-0 flex items-center justify-center mr-2 shadow-sm">
+          <div className="font-bold text-lg text-slate-800 tracking-tight flex items-center">
+            <span className="bg-blue-600 text-white w-7 h-7 rounded shrink-0 flex items-center justify-center mr-2 shadow-sm text-sm">
                Σ
             </span>
+            StatStudio
           </div>
 
           {isEditingName ? (
@@ -125,21 +126,21 @@ export function AppLayout() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Left menu */}
-        <aside className="w-64 border-r bg-white flex flex-col z-0 shrink-0 shadow-sm">
-          <nav className="p-4 space-y-1">
-            <button onClick={() => setActiveTab('fichier')} className={`w-full flex items-center px-3 py-2 text-sm rounded-md ${activeTab === 'fichier' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>Fichier</button>
-            <button onClick={() => setActiveTab('donnees')} disabled={!datasetName} className={`w-full flex items-center px-3 py-2 text-sm rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'donnees' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>Données</button>
-            <button onClick={() => setActiveTab('descriptives')} disabled={!datasetName} className={`w-full flex items-center px-3 py-2 text-sm rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'descriptives' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>Descriptives</button>
-            <button onClick={() => setActiveTab('tests')} disabled={!datasetName} className={`w-full flex items-center px-3 py-2 text-sm rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'tests' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>Tests statistiques</button>
-            <button onClick={() => setActiveTab('regression')} disabled={!datasetName} className={`w-full flex items-center px-3 py-2 text-sm rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'regression' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>Régression</button>
-            <button onClick={() => setActiveTab('graphiques')} disabled={!datasetName} className={`w-full flex items-center px-3 py-2 text-sm rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'graphiques' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>Graphiques</button>
-            <button onClick={() => setActiveTab('code')} disabled={!datasetName} className={`w-full flex items-center px-3 py-2 text-sm rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'code' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>Code Python</button>
-            <button onClick={() => setActiveTab('export')} disabled={!datasetName} className={`w-full flex items-center px-3 py-2 text-sm rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'export' ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}`}>Export</button>
+        <aside className="w-52 border-r bg-white flex flex-col z-0 shrink-0 shadow-sm">
+          <nav className="p-3 space-y-0.5">
+            <button onClick={() => setActiveTab('fichier')} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${activeTab === 'fichier' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Fichier</button>
+            <button onClick={() => setActiveTab('donnees')} disabled={!datasetName} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'donnees' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Données</button>
+            <button onClick={() => setActiveTab('descriptives')} disabled={!datasetName} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'descriptives' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Descriptives</button>
+            <button onClick={() => setActiveTab('tests')} disabled={!datasetName} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'tests' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Tests statistiques</button>
+            <button onClick={() => setActiveTab('regression')} disabled={!datasetName} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'regression' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Régression</button>
+            <button onClick={() => setActiveTab('graphiques')} disabled={!datasetName} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'graphiques' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Graphiques</button>
+            <button onClick={() => setActiveTab('code')} disabled={!datasetName} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'code' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Code Python</button>
+            <button onClick={() => setActiveTab('export')} disabled={!datasetName} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'export' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Export</button>
           </nav>
         </aside>
 
         {/* Center Content */}
-        <main className="flex-1 flex flex-col min-w-0 bg-slate-50">
+        <main className="flex-1 flex flex-col min-w-0 bg-slate-50 overflow-y-auto">
           {renderContent()}
           {consoleVisible && <Console />}
         </main>

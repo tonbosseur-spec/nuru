@@ -44,6 +44,8 @@ export function DataFilterDialog() {
     }
 
     const code = `
+import pandas as pd
+import io
 old_rows = len(df)
 df = df[${condition}].copy()
 new_rows = len(df)
@@ -54,13 +56,13 @@ for col in df.columns:
     col_type = 'numeric' if pd.api.types.is_numeric_dtype(df[col]) else 'categorical'
     column_info.append({"name": col, "type": col_type, "missing": int(df[col].isnull().sum())})
 
-last_result = {"columns": column_info, "rows": len(df), "removed": old_rows - len(df)}
+last_result = {"columns": column_info, "rows": len(df), "removed": old_rows - len(df), "csv": df.to_csv(index=False)}
 `;
 
     try {
       const res = await engine.runCode(code);
       if (res.result) {
-        setDataset(datasetName!, res.result.columns, res.result.rows);
+        setDataset(datasetName!, res.result.columns, res.result.rows, res.result.csv);
         toast.success(`Filter applied. Removed ${res.result.removed} rows.`);
         setOpen(false);
         // Reset form
@@ -78,17 +80,19 @@ last_result = {"columns": column_info, "rows": len(df), "removed": old_rows - le
      // If we saved the original csv_data, we could reload it.
      // Good news: 'csv_data' still exists in python globals!
      const code = `
+import pandas as pd
+import io
 df = pd.read_csv(io.StringIO(csv_data))
 column_info = []
 for col in df.columns:
     col_type = 'numeric' if pd.api.types.is_numeric_dtype(df[col]) else 'categorical'
     column_info.append({"name": col, "type": col_type, "missing": int(df[col].isnull().sum())})
-last_result = {"columns": column_info, "rows": len(df)}
+last_result = {"columns": column_info, "rows": len(df), "csv": df.to_csv(index=False)}
 `;
      try {
        const res = await engine.runCode(code);
        if (res.result) {
-           setDataset(datasetName!, res.result.columns, res.result.rows);
+           setDataset(datasetName!, res.result.columns, res.result.rows, res.result.csv);
            toast.success('Dataset restored to original imported state');
            setOpen(false);
        }

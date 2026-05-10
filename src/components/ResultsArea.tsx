@@ -14,9 +14,26 @@ export function ResultsArea() {
     setExpandedCode(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const copyToClipboard = (text: string) => {
+  const copyToClipboard = (text: string, msg = 'Code copié') => {
     navigator.clipboard.writeText(text);
-    toast.success('Code copied to clipboard');
+    toast.success(msg);
+  };
+
+  const copyTable = async (e: React.MouseEvent) => {
+    const table = e.currentTarget.closest('.border-slate-200')?.querySelector('table');
+    if (table) {
+      try {
+        const blobHtml = new Blob([table.outerHTML], { type: 'text/html' });
+        const blobText = new Blob([table.innerText], { type: 'text/plain' });
+        const data = [new ClipboardItem({ 'text/html': blobHtml, 'text/plain': blobText })];
+        await navigator.clipboard.write(data);
+        toast.success('Tableau copié avec formatage (prêt pour Excel/Word)');
+      } catch (err) {
+        // Fallback for browsers that don't support ClipboardItem or have issues
+        navigator.clipboard.writeText(table.innerText);
+        toast.success('Tableau copié (format texte)');
+      }
+    }
   };
 
   const extractLibraries = (code: string) => {
@@ -49,7 +66,18 @@ export function ResultsArea() {
                 layout={{...plotData.layout, autosize: true, margin: { t: 40, r: 20, l: 40, b: 40 }}} 
                 useResizeHandler={true}
                 style={{ width: '100%', height: '400px' }}
-                config={{ responsive: true, displayModeBar: false }}
+                config={{ 
+                  responsive: true, 
+                  displayModeBar: true,
+                  modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+                  toImageButtonOptions: {
+                    format: 'png',
+                    filename: 'statstudio_plot',
+                    height: 500,
+                    width: 700,
+                    scale: 2
+                  }
+                }}
               />
             </div>
           );
@@ -86,12 +114,15 @@ export function ResultsArea() {
                  <div className="bg-slate-50 px-4 py-3 font-semibold text-slate-700 border-b flex justify-between items-center">
                     <span>{res.title}</span>
                     <div className="flex items-center space-x-2">
+                      <Button variant="ghost" size="sm" onClick={copyTable} className="h-7 text-[10px] uppercase font-bold text-slate-500 hover:text-blue-600" title="Copier les tableaux">
+                        <Copy className="w-3.5 h-3.5 mr-1" /> Copier Table
+                      </Button>
                       <Button variant="ghost" size="sm" onClick={() => copyToClipboard(res.code)} className="h-7 text-[10px] uppercase font-bold text-slate-500 hover:text-blue-600">
-                        <Copy className="w-3.5 h-3.5 mr-1" /> Copy Code
+                        <Code className="w-3.5 h-3.5 mr-1" /> Code
                       </Button>
                       <Button variant="ghost" size="sm" onClick={() => toggleCode(res.id)} className="h-7 text-[10px] uppercase font-bold text-slate-500 hover:text-blue-600">
                         {expandedCode[res.id] ? <ChevronDown className="w-3.5 h-3.5 mr-1" /> : <ChevronRight className="w-3.5 h-3.5 mr-1" />}
-                        {expandedCode[res.id] ? 'Hide Code' : 'Show Code'}
+                        {expandedCode[res.id] ? 'Masquer' : 'Afficher'}
                       </Button>
                     </div>
                  </div>

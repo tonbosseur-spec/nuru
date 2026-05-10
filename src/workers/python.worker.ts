@@ -43,6 +43,15 @@ except ImportError:
     pio = None
 import json
 
+# Ensure they are in globals
+globals()['pd'] = pd
+globals()['np'] = np
+globals()['stats'] = stats
+globals()['io'] = io
+globals()['json'] = json
+globals()['px'] = px
+globals()['pio'] = pio
+
 # Statistical Explanation Helpers
 def interpret_p(p, alpha=0.05):
     if p < alpha:
@@ -90,6 +99,8 @@ def run_analysis(code_str):
       const { csvStr } = payload;
       pyodide.globals.set('csv_data', csvStr);
       await pyodide.runPythonAsync(`
+import pandas as pd
+import io
 df = pd.read_csv(io.StringIO(csv_data))
 column_info = []
 for col in df.columns:
@@ -107,6 +118,8 @@ last_result = {"columns": column_info, "rows": len(df), "csv": df.to_csv(index=F
       pyodide.FS.writeFile(filename, uint8);
       
       await pyodide.runPythonAsync(`
+import pandas as pd
+import io
 filename = "${filename}"
 if filename.endswith('.xlsx') or filename.endswith('.xls'):
     df = pd.read_excel(filename)

@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { engine } from '@/src/lib/pythonEngine';
 
 export function ExportArea() {
-  const { datasetName, currentWorkspaceId, workspaceName } = useStore();
+  const { datasetName, currentWorkspaceId, workspaceName, results, user } = useStore();
 
   const exportData = async (format: 'csv' | 'json') => {
     try {
@@ -71,8 +71,78 @@ base64.b64encode(json_data.encode('utf-8')).decode('utf-8')
     }
   };
 
+  const exportResultsHTML = () => {
+    if (results.length === 0) {
+      toast.error("Aucun résultat à exporter");
+      return;
+    }
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport StatStudio - ${workspaceName}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; background: #f8f9fa; }
+        .container { max-width: 900px; background: white; padding: 40px; border-radius: 12px; shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #2563eb; margin-bottom: 5px; }
+        .meta { color: #64748b; font-size: 0.9em; margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+        .result-item { margin-bottom: 60px; page-break-inside: avoid; }
+        .result-title { font-size: 1.5em; font-weight: bold; margin-bottom: 15px; color: #1e293b; border-left: 4px solid #2563eb; padding-left: 15px; }
+        .result-content { background: white; }
+        pre { background: #1e293b; color: #e2e8f0; padding: 15px; border-radius: 8px; font-size: 0.85em; margin-bottom: 20px; }
+        table { width: 100% !important; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #dee2e6 !important; padding: 12px !important; }
+        th { background-color: #f8f9fa !important; }
+        .plotly-placeholder { font-style: italic; color: #94a3b8; border: 1px dashed #cbd5e1; padding: 20px; text-align: center; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="container shadow-sm">
+        <h1>Rapport d'Analyse Statistique</h1>
+        <div class="meta">
+            Projet : <b>${workspaceName}</b><br/>
+            Analyste : <b>${user?.firstName} ${user?.lastName}</b><br/>
+            Date : ${new Date().toLocaleString('fr-FR')}
+        </div>
+
+        ${results.map(res => `
+            <div class="result-item">
+                <div class="result-title">${res.title}</div>
+                <div class="result-content">
+                    ${res.output.includes('__PLOTLY_JSON__') 
+                      ? res.output.split('__PLOTLY_JSON__')[0] + '<div class="plotly-placeholder">[ Graphique Interactif Plotly - Disponible dans l\'application ]</div>'
+                      : res.output
+                    }
+                </div>
+            </div>
+        `).join('')}
+        
+        <footer class="mt-5 pt-4 border-top text-center text-muted text-small">
+            Généré avec StatStudio — Plateforme d'analyse statistique locale et sécurisée.
+        </footer>
+    </div>
+</body>
+</html>
+    `;
+
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Rapport_${workspaceName.replace(/\s+/g, '_')}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("Rapport HTML exporté !");
+  };
+
   const exportResults = () => {
-    toast.info("L'export des résultats n'est pas encore implémenté via PDF, utilisez le code Python pour l'instant.");
+    toast.info("L'export direct PDF nécessite l'impression système (Ctrl+P) du rapport HTML.");
   };
 
   return (
@@ -97,11 +167,25 @@ base64.b64encode(json_data.encode('utf-8')).decode('utf-8')
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center"><Package className="w-5 h-5 mr-2 text-purple-600" /> Espace de Travail</CardTitle>
-            <CardDescription>Sauvegarder l'intégralité du projet (données, historique de code, résultats) pour le partager ou le restaurer plus tard.</CardDescription>
+            <CardTitle className="flex items-center"><FileText className="w-5 h-5 mr-2 text-green-600" /> Exporter le rapport</CardTitle>
+            <CardDescription>Exportez tous les résultats d'analyse au format HTML ou PDF.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+             <Button onClick={exportResultsHTML} className="w-full justify-start" variant="outline">
+              <FileText className="w-4 h-4 mr-2" /> Exporter le rapport (HTML)
+            </Button>
+            <Button onClick={() => window.print()} className="w-full justify-start" variant="outline">
+              <Download className="w-4 h-4 mr-2" /> Imprimer / Sauvegarder en PDF
+            </Button>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center"><Package className="w-5 h-5 mr-2 text-purple-600" /> Projet (.statstudio)</CardTitle>
+            <CardDescription>Sauvegarder l'intégralité du projet pour le restaurer plus tard.</CardDescription>
           </CardHeader>
           <CardContent>
-             <Button onClick={exportWorkspace} className="w-full justify-start border-purple-200 text-purple-700 hover:bg-purple-50" variant="outline">
+             <Button onClick={exportWorkspace} className="w-full justify-start border-purple-100 text-purple-700 hover:bg-purple-50" variant="outline">
               <Download className="w-4 h-4 mr-2" /> Télécharger monnetir.statstudio
             </Button>
           </CardContent>
