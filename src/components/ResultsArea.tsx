@@ -1,0 +1,120 @@
+import React, { useState } from 'react';
+import { useStore, ResultItem } from '@/src/store';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Trash2, Code, Copy, ChevronDown, ChevronRight, Library } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import Plot from 'react-plotly.js';
+import { toast } from 'sonner';
+
+export function ResultsArea() {
+  const { results, clearResults } = useStore();
+  const [expandedCode, setExpandedCode] = useState<Record<string, boolean>>({});
+
+  const toggleCode = (id: string) => {
+    setExpandedCode(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Code copied to clipboard');
+  };
+
+  const extractLibraries = (code: string) => {
+    const lines = code.split('\n');
+    const libs: string[] = [];
+    lines.forEach(line => {
+      const match = line.match(/^\s*(?:import|from)\s+([a-zA-Z0-9_.]+)/);
+      if (match) {
+        const lib = match[1].split('.')[0];
+        if (!libs.includes(lib)) libs.push(lib);
+      }
+    });
+    return libs;
+  };
+
+  const renderContent = (res: ResultItem) => {
+    if (!res.output) return <span className="italic text-slate-400">No output</span>;
+    
+    if (res.output.includes('__PLOTLY_JSON__')) {
+       const parts = res.output.split('__PLOTLY_JSON__');
+       const beforeHtml = parts[0];
+       
+       try {
+          const plotData = JSON.parse(parts[1]);
+          return (
+            <div className="w-full">
+              {beforeHtml && <div dangerouslySetInnerHTML={{ __html: beforeHtml }} className="mb-4" />}
+              <Plot 
+                data={plotData.data} 
+                layout={{...plotData.layout, autosize: true, margin: { t: 40, r: 20, l: 40, b: 40 }}} 
+                useResizeHandler={true}
+                style={{ width: '100%', height: '400px' }}
+                config={{ responsive: true, displayModeBar: false }}
+              />
+            </div>
+          );
+       } catch(e) {
+          return <div className="text-red-500">Error parsing plot data</div>;
+       }
+    }
+
+    return <div dangerouslySetInnerHTML={{ __html: res.output }} className="prose max-w-none prose-table:w-full prose-table:border-collapse prose-th:border prose-th:p-2 prose-th:bg-slate-50 prose-td:border prose-td:p-2" />;
+  };
+
+  if (results.length === 0) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-slate-400">
+        <p>Run an analysis to see results</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col h-full bg-white">
+      <div className="px-4 py-3 border-b flex justify-between items-center bg-slate-50 shrink-0">
+        <h3 className="font-semibold text-slate-700">Results Output</h3>
+        <Button variant="ghost" size="sm" onClick={clearResults} className="h-8 text-slate-500 hover:text-red-600">
+          <Trash2 className="w-4 h-4 mr-2" /> Clear All
+        </Button>
+      </div>
+      <ScrollArea className="flex-1">
+         <div className="p-6 space-y-8 pb-10">
+           {results.map((res) => {
+             const libraries = res.libraries || extractLibraries(res.code);
+             return (
+               <div key={res.id} className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm transition-all hover:shadow-md">
+                 <div className="bg-slate-50 px-4 py-3 font-semibold text-slate-700 border-b flex justify-between items-center">
+                    <span>{res.title}</span>
+                    <div className="flex items-center space-x-2">
+                      <Button variant="ghost" size="sm" onClick={() => copyToClipboard(res.code)} className="h-7 text-[10px] uppercase font-bold text-slate-500 hover:text-blue-600">
+                        <Copy className="w-3.5 h-3.5 mr-1" /> Copy Code
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => toggleCode(res.id)} className="h-7 text-[10px] uppercase font-bold text-slate-500 hover:text-blue-600">
+                        {expandedCode[res.id] ? <ChevronDown className="w-3.5 h-3.5 mr-1" /> : <ChevronRight className="w-3.5 h-3.5 mr-1" />}
+                        {expandedCode[res.id] ? 'Hide Code' : 'Show Code'}
+                      </Button>
+                    </div>
+                 </div>
+
+                 {expandedCode[res.id] && (
+                   <div className="bg-slate-900 p-4 font-mono text-xs overflow-x-auto text-blue-200 border-b">
+                     <div className="flex items-center mb-2 text-slate-500 font-sans tracking-wide uppercase text-[10px] font-bold">
+                       <Library className="w-3 h-3 mr-1" />
+                       Libs: {libraries.length > 0 ? libraries.join(', ') : 'standard'}
+                     </div>
+                     <pre>{res.code}</pre>
+                   </div>
+                 )}
+
+                 <div className="p-5 overflow-x-auto text-sm text-slate-800">
+                   {renderContent(res)}
+                 </div>
+               </div>
+             );
+           })}
+         </div>
+      </ScrollArea>
+    </div>
+  );
+}
+

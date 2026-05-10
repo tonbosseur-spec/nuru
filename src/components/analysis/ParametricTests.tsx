@@ -1,0 +1,228 @@
+import React, { useState } from 'react';
+import { useStore } from '@/src/store';
+import { engine } from '@/src/lib/pythonEngine';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
+
+export function ParametricTests() {
+  const { columns, addResult, isEngineReady } = useStore();
+  const [testType, setTestType] = useState<string>('ttest_1samp');
+  const [var1, setVar1] = useState<string>('');
+  const [var2, setVar2] = useState<string>('');
+  const [mu, setMu] = useState<string>('0');
+  const [isRunning, setIsRunning] = useState(false);
+
+  const numericCols = columns.filter(c => c.type === 'numeric');
+  const catCols = columns.filter(c => c.type === 'categorical');
+
+  const runAnalysis = async () => {
+    if (!var1) return;
+    if (testType !== 'ttest_1samp' && !var2) return;
+    
+    setIsRunning(true);
+    let code = `import plotly.express as px\nimport plotly.io as pio\nimport scipy.stats as stats\nimport pandas as pd\nimport numpy as np\n`;
+    let title = '';
+
+    if (testType === 'ttest_1samp') {
+       title = `T-test un échantillon: ${var1}`;
+       code += `
+target = '${var1}'
+pop_mean = float(${mu})
+v = df[target].dropna()
+stat, p = stats.ttest_1samp(v, pop_mean)
+
+ci = stats.t.interval(0.95, len(v)-1, loc=v.mean(), scale=stats.sem(v))
+
+print(f"<h3>{target} vs. moyenne théorique ({pop_mean})</h3>")
+res = pd.DataFrame({
+    'Moyenne Obs.': [v.mean()], 'Diff. Moyenne': [v.mean() - pop_mean],
+    't': [stat], 'ddl': [len(v)-1], 'p-value': [p],
+    'IC 95% (Inf)': [ci[0]], 'IC 95% (Sup)': [ci[1]]
+})
+print(res.round(4).to_html(classes=['table', 'table-bordered'], index=False))
+
+fig_box = px.box(df, y=target, title='Boxplot (Distribution)')
+fig_box.add_hline(y=pop_mean, line_dash='dash', line_color='red', annotation_text='Moyenne théorique')
+print("__PLOTLY_JSON__" + pio.to_json(fig_box))
+`;
+    } else if (testType === 'ttest_ind') {
+       title = `T-test indépendant: ${var1} by ${var2}`;
+       code += `
+target = '${var1}'
+group_var = '${var2}'
+
+data = df[[target, group_var]].dropna()
+groups = data[group_var].unique()
+if len(groups) != 2:
+    print("<p>Erreur: La variable de groupe doit avoir exactement 2 modalités.</p>")
+else:
+    g1 = data[data[group_var] == groups[0]][target]
+    g2 = data[data[group_var] == groups[1]][target]
+    
+    # Test de Levene (Homogénéité)
+    stat_l, p_l = stats.levene(g1, g2)
+    print("<h4>Assomptions: Test de Levene (Homogénéité des variances)</h4>")
+    print(f"<p>Statistique F = {stat_l:.4f}, p-value = {p_l:.4e}</p>")
+    equal_var = p_l > 0.05
+    if equal_var: print("<p>Les variances sont supposées égales.</p>")
+    else: print("<p>Les variances sont supposées inégales (Correction de Welch appliquée).</p>")
+
+    stat, p = stats.ttest_ind(g1, g2, equal_var=equal_var)
+    diff_mean = g1.mean() - g2.mean()
+    
+    print("<h4>Résultats du T-test Indépendant</h4>")
+    res = pd.DataFrame({
+        'Groupe 1': [groups[0]], 'Moyenne 1': [g1.mean()],
+        'Groupe 2': [groups[1]], 'Moyenne 2': [g2.mean()],
+        'Différence': [diff_mean], 't': [stat], 'p-value': [p]
+    })
+    print(res.round(4).to_html(classes=['table', 'table-bordered'], index=False))
+    
+    fig_box = px.box(data, x=group_var, y=target, color=group_var, title='Boxplots par groupe')
+    print("__PLOTLY_JSON__" + pio.to_json(fig_box))
+`;
+    } else if (testType === 'ttest_rel') {
+       title = `T-test apparié: ${var1} vs ${var2}`;
+       code += `
+v1 = '${var1}'
+v2 = '${var2}'
+
+data = df[[v1, v2]].dropna()
+stat, p = stats.ttest_rel(data[v1], data[v2])
+diff = data[v1] - data[v2]
+ci = stats.t.interval(0.95, len(diff)-1, loc=diff.mean(), scale=stats.sem(diff))
+
+print("<h4>Résultats du T-test Apparié</h4>")
+res = pd.DataFrame({
+    'Var 1': [v1], 'Moyenne 1': [data[v1].mean()],
+    'Var 2': [v2], 'Moyenne 2': [data[v2].mean()],
+    'Diff moyenne': [diff.mean()], 't': [stat], 'ddl': [len(diff)-1], 'p-value': [p],
+    'IC 95% Inf': [ci[0]], 'IC 95% Sup': [ci[1]]
+})
+print(res.round(4).to_html(classes=['table', 'table-bordered'], index=False))
+
+df_melt = data.melt()
+fig_box = px.box(df_melt, x='variable', y='value', color='variable', title='Boxplots des paires')
+print("__PLOTLY_JSON__" + pio.to_json(fig_box))
+`;
+    } else if (testType === 'anova') {
+       title = `ANOVA à un facteur: ${var1} by ${var2}`;
+       code += `
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
+
+target = '${var1}'
+group_var = '${var2}'
+data = df[[target, group_var]].dropna()
+
+# Levene
+groups = [group[target].values for name, group in data.groupby(group_var)]
+stat_l, p_l = stats.levene(*groups)
+print("<h4>Test de Levene (Homogénéité)</h4>")
+print(f"<p>p-value: {p_l:.4e}</p>")
+
+# ANOVA
+model = ols(f"{target} ~ C({group_var})", data=data).fit()
+anova_table = sm.stats.anova_lm(model, typ=2)
+p_val = anova_table.iloc[0]['PR(>F)']
+
+print("<h4>Tableau ANOVA</h4>")
+print(anova_table.round(4).to_html(classes=['table', 'table-bordered']))
+
+if p_val < 0.05:
+    print("<p className='text-sm text-green-600'>Au moins une moyenne diffère significativement entre les groupes.</p>")
+    print("<h4>Post-Hoc (Tukey HSD)</h4>")
+    tukey = pairwise_tukeyhsd(endog=data[target], groups=data[group_var], alpha=0.05)
+    print(pd.DataFrame(data=tukey._results_table.data[1:], columns=tukey._results_table.data[0]).to_html(classes=['table', 'table-bordered'], index=False))
+else:
+    print("<p className='text-sm'>Les moyennes ne diffèrent pas significativement.</p>")
+
+fig_box = px.box(data, x=group_var, y=target, color=group_var, title='Boxplots par groupe')
+print("__PLOTLY_JSON__" + pio.to_json(fig_box))
+
+# Interaction/Mean plot via px.line
+agg = data.groupby(group_var)[target].mean().reset_index()
+fig_mean = px.line(agg, x=group_var, y=target, markers=True, title='Mean plots')
+print("__PLOTLY_JSON__" + pio.to_json(fig_mean))
+`;
+    }
+
+    try {
+      const res = await engine.runCode(code);
+      addResult({
+        id: Date.now().toString(),
+        title,
+        code,
+        output: res.output,
+        timestamp: Date.now(),
+      });
+    } catch (err: any) {
+      toast.error('Erreur: ' + err.message);
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <div>
+          <Label className="mb-1.5 block">Test Paramétrique</Label>
+          <Select value={testType} onValueChange={setTestType}>
+            <SelectTrigger>
+              <SelectValue placeholder="Sélectionner..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ttest_1samp">T-test un échantillon</SelectItem>
+              <SelectItem value="ttest_ind">T-test indépendant</SelectItem>
+              <SelectItem value="ttest_rel">T-test apparié</SelectItem>
+              <SelectItem value="anova">ANOVA à un facteur</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+           <Label className="mb-1.5 block">Variable Quantitative {testType === 'ttest_rel' && '1'}</Label>
+          <Select value={var1} onValueChange={setVar1}>
+            <SelectTrigger><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
+            <SelectContent>
+              {numericCols.map(c => <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {testType === 'ttest_1samp' && (
+          <div>
+            <Label className="mb-1.5 block">Moyenne théorique</Label>
+            <Input type="number" value={mu} onChange={e => setMu(e.target.value)} />
+          </div>
+        )}
+
+        {testType !== 'ttest_1samp' && (
+          <div>
+            <Label className="mb-1.5 block">
+              {testType === 'ttest_rel' ? 'Variable Quantitative 2' : 'Variable Groupe (Facteur)'}
+            </Label>
+            <Select value={var2} onValueChange={setVar2}>
+               <SelectTrigger><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
+               <SelectContent>
+                 {testType === 'ttest_rel' 
+                    ? numericCols.map(c => <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>)
+                    : columns.map(c => <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>)
+                 }
+               </SelectContent>
+            </Select>
+          </div>
+        )}
+      </div>
+      
+      <Button onClick={runAnalysis} disabled={!isEngineReady || isRunning || !var1} className="w-full">
+        {isRunning ? 'Calcul...' : 'Lancer le Test'}
+      </Button>
+    </div>
+  );
+}
