@@ -44,9 +44,16 @@ res = pd.DataFrame({
 })
 print(res.round(4).to_html(classes=['table', 'table-bordered'], index=False))
 
+interp_pval = "La différence avec la moyenne théorique est statistiquement significative (p < 0.05)." if p < 0.05 else "La différence avec la moyenne théorique n'est pas statistiquement significative (p >= 0.05)."
+print("<div className='mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-md text-slate-800'>")
+print("<h4 className='font-bold text-blue-900 mb-2'>Interprétation des Résultats</h4>")
+print(f"<p className='mb-1'><b>Significativité :</b> {interp_pval}</p>")
+print(f"<p>La moyenne observée est de {v.mean():.4f} contre une théorique de {pop_mean}.</p>")
+print("</div>")
+
 fig_box = px.box(df, y=target, title='Boxplot (Distribution)')
 fig_box.add_hline(y=pop_mean, line_dash='dash', line_color='red', annotation_text='Moyenne théorique')
-print("__PLOTLY_JSON__" + pio.to_json(fig_box))
+print("__PLOTLY_JSON_START__" + pio.to_json(fig_box) + "__PLOTLY_JSON_END__")
 `;
     } else if (testType === 'ttest_ind') {
        title = `T-test indépendant: ${var1} by ${var2}`;
@@ -81,8 +88,15 @@ else:
     })
     print(res.round(4).to_html(classes=['table', 'table-bordered'], index=False))
     
+    interp_pval = "La différence de moyenne entre les deux groupes est statistiquement significative (p < 0.05)." if p < 0.05 else "La différence entre les deux groupes n'est pas statistiquement significative (p >= 0.05)."
+    print("<div className='mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-md text-slate-800'>")
+    print("<h4 className='font-bold text-blue-900 mb-2'>Interprétation des Résultats</h4>")
+    print(f"<p className='mb-1'><b>Significativité :</b> {interp_pval}</p>")
+    print(f"<p>Le groupe {groups[0]} a une moyenne de {g1.mean():.4f} et le groupe {groups[1]} a une moyenne de {g2.mean():.4f}.</p>")
+    print("</div>")
+
     fig_box = px.box(data, x=group_var, y=target, color=group_var, title='Boxplots par groupe')
-    print("__PLOTLY_JSON__" + pio.to_json(fig_box))
+    print("__PLOTLY_JSON_START__" + pio.to_json(fig_box) + "__PLOTLY_JSON_END__")
 `;
     } else if (testType === 'ttest_rel') {
        title = `T-test apparié: ${var1} vs ${var2}`;
@@ -104,9 +118,16 @@ res = pd.DataFrame({
 })
 print(res.round(4).to_html(classes=['table', 'table-bordered'], index=False))
 
+interp_pval = "La différence de moyenne entre les deux variables appariées est statistiquement significative (p < 0.05)." if p < 0.05 else "La différence entre les deux variables n'est pas statistiquement significative (p >= 0.05)."
+print("<div className='mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-md text-slate-800'>")
+print("<h4 className='font-bold text-blue-900 mb-2'>Interprétation des Résultats</h4>")
+print(f"<p className='mb-1'><b>Significativité :</b> {interp_pval}</p>")
+print(f"<p>La différence moyenne est de {diff.mean():.4f}.</p>")
+print("</div>")
+
 df_melt = data.melt()
 fig_box = px.box(df_melt, x='variable', y='value', color='variable', title='Boxplots des paires')
-print("__PLOTLY_JSON__" + pio.to_json(fig_box))
+print("__PLOTLY_JSON_START__" + pio.to_json(fig_box) + "__PLOTLY_JSON_END__")
 `;
     } else if (testType === 'anova') {
        title = `ANOVA à un facteur: ${var1} by ${var2}`;
@@ -133,21 +154,26 @@ p_val = anova_table.iloc[0]['PR(>F)']
 print("<h4>Tableau ANOVA</h4>")
 print(anova_table.round(4).to_html(classes=['table', 'table-bordered']))
 
+interp_pval = "Il existe une différence statistiquement significative (p < 0.05) entre au moins deux groupes." if p_val < 0.05 else "Il n'y a pas de différence statistiquement significative entre les moyennes des groupes (p >= 0.05)."
+print("<div className='mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-md text-slate-800'>")
+print("<h4 className='font-bold text-blue-900 mb-2'>Interprétation des Résultats</h4>")
+print(f"<p className='mb-1'><b>Significativité Globale :</b> {interp_pval}</p>")
+print("</div>")
+
 if p_val < 0.05:
-    print("<p className='text-sm text-green-600'>Au moins une moyenne diffère significativement entre les groupes.</p>")
+    print("<p className='text-sm text-green-600 mt-4'><b>Analyse Post-Hoc requise (voir ci-dessous)</b></p>")
     print("<h4>Post-Hoc (Tukey HSD)</h4>")
     tukey = pairwise_tukeyhsd(endog=data[target], groups=data[group_var], alpha=0.05)
     print(pd.DataFrame(data=tukey._results_table.data[1:], columns=tukey._results_table.data[0]).to_html(classes=['table', 'table-bordered'], index=False))
-else:
-    print("<p className='text-sm'>Les moyennes ne diffèrent pas significativement.</p>")
+
 
 fig_box = px.box(data, x=group_var, y=target, color=group_var, title='Boxplots par groupe')
-print("__PLOTLY_JSON__" + pio.to_json(fig_box))
+print("__PLOTLY_JSON_START__" + pio.to_json(fig_box) + "__PLOTLY_JSON_END__")
 
 # Interaction/Mean plot via px.line
 agg = data.groupby(group_var)[target].mean().reset_index()
 fig_mean = px.line(agg, x=group_var, y=target, markers=True, title='Mean plots')
-print("__PLOTLY_JSON__" + pio.to_json(fig_mean))
+print("__PLOTLY_JSON_START__" + pio.to_json(fig_mean) + "__PLOTLY_JSON_END__")
 `;
     }
 

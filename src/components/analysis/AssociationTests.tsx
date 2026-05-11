@@ -36,7 +36,13 @@ print(f"<h3>Association: ${var1} vs ${var2}</h3>")
 print(contingency.to_html(classes=['table', 'table-bordered']))
 print(f"<p className='mt-4'><b>Chi-Square:</b> {chi2:.4f}, <b>p-value:</b> {p:.4e}</p>")
 print(f"<p><b>Cramer's V:</b> {cramers_v:.4f}</p>")
-print(f"<div className='mt-4 p-3 bg-slate-50 rounded border'>{interpret_p(p)}</div>")
+interp_pval = "Il existe une association statistiquement significative entre les deux variables (p < 0.05)." if p < 0.05 else "Il n'y a pas d'association statistiquement significative (p >= 0.05)."
+print("<div className='mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-md text-slate-800'>")
+print("<h4 className='font-bold text-blue-900 mb-2'>Interprétation des Résultats</h4>")
+print(f"<p className='mb-1'><b>Significativité :</b> {interp_pval}</p>")
+print(f"<p><b>Taille de l'effet (Cramer's V) :</b> {cramers_v:.4f} (Mesure l'intensité de l'association, de 0 à 1).</p>")
+print("</div>")
+
 `;
     }
 

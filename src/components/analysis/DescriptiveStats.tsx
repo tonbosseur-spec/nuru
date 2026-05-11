@@ -88,16 +88,16 @@ group_labels = ['${selectedVar}']
 try:
     fig_hist = ff.create_distplot(hist_data, group_labels, bin_size=(df['${selectedVar}'].max()-df['${selectedVar}'].min() ) / int(${histBins}), curve_type='normal', show_rug=False)
     fig_hist.update_layout(title='Histogramme avec courbe normale', template='plotly_white')
-    print("__PLOTLY_JSON__" + pio.to_json(fig_hist))
+    print("__PLOTLY_JSON_START__" + pio.to_json(fig_hist) + "__PLOTLY_JSON_END__")
 except Exception as e:
     fig = px.histogram(df, x='${selectedVar}', nbins=int(${histBins}), title='Histogramme', template='plotly_white')
-    print("__PLOTLY_JSON__" + pio.to_json(fig))
+    print("__PLOTLY_JSON_START__" + pio.to_json(fig) + "__PLOTLY_JSON_END__")
 `;
       }
       if (showBoxplot) {
         code += `
 fig_box = px.box(df, y='${selectedVar}', title='Boxplot', template='plotly_white')
-print("__PLOTLY_JSON__" + pio.to_json(fig_box))
+print("__PLOTLY_JSON_START__" + pio.to_json(fig_box) + "__PLOTLY_JSON_END__")
 `;
       }
       if (showDensity) {
@@ -106,7 +106,7 @@ print("__PLOTLY_JSON__" + pio.to_json(fig_box))
 try:
     fig_dens = ff.create_distplot([df['${selectedVar}'].dropna()], ['${selectedVar}'], show_hist=False, show_rug=False)
     fig_dens.update_layout(title='Graphe de Densité')
-    print("__PLOTLY_JSON__" + pio.to_json(fig_dens))
+    print("__PLOTLY_JSON_START__" + pio.to_json(fig_dens) + "__PLOTLY_JSON_END__")
 except: pass
 `;
       }
@@ -119,7 +119,7 @@ x_line = np.array([min(qq[0][0]), max(qq[0][0])])
 y_line = qq[1][1] + qq[1][0] * x_line
 fig_qq.add_trace(go.Scatter(x=x_line, y=y_line, mode='lines', name='Normal', line=dict(color='red', dash='dash')))
 fig_qq.update_layout(title='QQ Plot', xaxis_title='Quantiles Théoriques', yaxis_title='Quantiles Observés')
-print("__PLOTLY_JSON__" + pio.to_json(fig_qq))
+print("__PLOTLY_JSON_START__" + pio.to_json(fig_qq) + "__PLOTLY_JSON_END__")
 `;
       }
     } else {
@@ -137,13 +137,13 @@ print(counts.round(2).to_html(index=False, classes=['table', 'table-bordered']))
       if (showBar) {
         code += `
 fig_bar = px.bar(counts, x='Modalité', y='Effectifs (N)', title='Diagramme en Barres')
-print("__PLOTLY_JSON__" + pio.to_json(fig_bar))
+print("__PLOTLY_JSON_START__" + pio.to_json(fig_bar) + "__PLOTLY_JSON_END__")
 `;
       }
       if (showPie) {
         code += `
 fig_pie = px.pie(counts, names='Modalité', values='Effectifs (N)', title='Diagramme Circulaire')
-print("__PLOTLY_JSON__" + pio.to_json(fig_pie))
+print("__PLOTLY_JSON_START__" + pio.to_json(fig_pie) + "__PLOTLY_JSON_END__")
 `;
       }
     }

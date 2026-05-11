@@ -55,14 +55,14 @@ print(f"<p><b>Corrélation Spearman (rangs) :</b> {corr_s:.4f} (p-value: {p_s:.4
       if (showScatter) {
         code += `
 fig_scatter = px.scatter(d_clean, x='${var1}', y='${var2}', trendline='ols', title='Nuage de points')
-print("__PLOTLY_JSON__" + pio.to_json(fig_scatter))
+print("__PLOTLY_JSON_START__" + pio.to_json(fig_scatter) + "__PLOTLY_JSON_END__")
 `;
       }
       if (showCorrMatrix) {
         code += `
 corr_matrix = df.select_dtypes(include=[np.number]).corr()
 fig_hm = px.imshow(corr_matrix, text_auto=True, title='Heatmap globale (Pearson)', color_continuous_scale='RdBu_r')
-print("__PLOTLY_JSON__" + pio.to_json(fig_hm))
+print("__PLOTLY_JSON_START__" + pio.to_json(fig_hm) + "__PLOTLY_JSON_END__")
 `;
       }
     } else if (v1.type === 'categorical' && v2.type === 'categorical') {
@@ -109,7 +109,7 @@ fig_parcat = go.Figure(go.Parcats(
     ],
 ))
 fig_parcat.update_layout(title='Diagramme des parallèles (Mosaic effect)')
-print("__PLOTLY_JSON__" + pio.to_json(fig_parcat))
+print("__PLOTLY_JSON_START__" + pio.to_json(fig_parcat) + "__PLOTLY_JSON_END__")
 `;
       }
 
@@ -117,7 +117,7 @@ print("__PLOTLY_JSON__" + pio.to_json(fig_parcat))
         code += `
 ct_melt = ct.reset_index().melt(id_vars='${var1}')
 fig_bar = px.bar(ct_melt, x='${var1}', y='value', color='${var2}', barmode='group', title='Barres groupées')
-print("__PLOTLY_JSON__" + pio.to_json(fig_bar))
+print("__PLOTLY_JSON_START__" + pio.to_json(fig_bar) + "__PLOTLY_JSON_END__")
 `;
       }
 
@@ -137,21 +137,21 @@ print(agg_df.round(4).to_html(classes=['table', 'table-bordered', 'w-full']))
 agg_df['se'] = agg_df['Écart-type'] / np.sqrt(agg_df['count'])
 fig_mean = px.scatter(agg_df, x='${catV}', y='Moyenne', error_y='se', title='Mean plots (avec erreur type)')
 fig_mean.update_traces(mode='lines+markers', line=dict(dash='solid'))
-print("__PLOTLY_JSON__" + pio.to_json(fig_mean))
+print("__PLOTLY_JSON_START__" + pio.to_json(fig_mean) + "__PLOTLY_JSON_END__")
 `;
       }
 
       if (showBoxplots) {
         code += `
 fig_box = px.box(df, x='${catV}', y='${numV}', color='${catV}', title='Boxplots conditionnels')
-print("__PLOTLY_JSON__" + pio.to_json(fig_box))
+print("__PLOTLY_JSON_START__" + pio.to_json(fig_box) + "__PLOTLY_JSON_END__")
 `;
       }
 
       if (showViolins) {
         code += `
 fig_violin = px.violin(df, x='${catV}', y='${numV}', color='${catV}', box=True, title='Violin plots')
-print("__PLOTLY_JSON__" + pio.to_json(fig_violin))
+print("__PLOTLY_JSON_START__" + pio.to_json(fig_violin) + "__PLOTLY_JSON_END__")
 `;
       }
     }

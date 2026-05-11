@@ -80,9 +80,14 @@ res_df = pd.DataFrame(results)
 print(f"<h3>Normality Analysis: ${selectedVar}</h3>")
 print(res_df.round(4).to_html(classes=['table', 'table-bordered'], index=False, na_rep='-'))
 
+print("<div className='mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-md text-slate-800'>")
+print("<h4 className='font-bold text-blue-900 mb-2'>Interprétation des Résultats</h4>")
+print("<p className='mb-1'>L'hypothèse nulle (H0) des tests de normalité postule que la distribution suit une loi normale. Une p-value inférieure à 0.05 signifie que la distribution <b>s'écarte significativement de la normalité</b>.</p>")
+print("</div>")
+
 if px:
     fig = px.histogram(df, x='${selectedVar}', marginal="box", title="Distribution of ${selectedVar}")
-    print("__PLOTLY_JSON__" + pio.to_json(fig))
+    print("__PLOTLY_JSON_START__" + pio.to_json(fig) + "__PLOTLY_JSON_END__")
 `;
 
     try {

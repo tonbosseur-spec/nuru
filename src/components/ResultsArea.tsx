@@ -52,40 +52,54 @@ export function ResultsArea() {
   const renderContent = (res: ResultItem) => {
     if (!res.output) return <span className="italic text-slate-400">No output</span>;
     
-    if (res.output.includes('__PLOTLY_JSON__')) {
-       const parts = res.output.split('__PLOTLY_JSON__');
+    if (res.output.includes('__PLOTLY_JSON_START__')) {
+       // Support multiple plots
+       const parts = res.output.split('__PLOTLY_JSON_START__');
        const beforeHtml = parts[0];
        
-       try {
-          const plotData = JSON.parse(parts[1]);
-          return (
-            <div className="w-full overflow-hidden">
+       return (
+            <div className="w-full overflow-hidden space-y-4">
               {beforeHtml && <div dangerouslySetInnerHTML={{ __html: beforeHtml }} className="mb-4" />}
-              <div className="w-full overflow-x-auto">
-                <Plot 
-                  data={plotData.data} 
-                  layout={{...plotData.layout, autosize: true, margin: { t: 40, r: 20, l: 40, b: 40 }}} 
-                  useResizeHandler={true}
-                  style={{ width: '100%', minHeight: '400px' }}
-                  config={{ 
-                    responsive: true, 
-                    displayModeBar: true,
-                    modeBarButtonsToRemove: ['lasso2d', 'select2d'],
-                    toImageButtonOptions: {
-                      format: 'png',
-                      filename: 'statstudio_plot',
-                      height: 500,
-                      width: 700,
-                      scale: 2
-                    }
-                  }}
-                />
-              </div>
+              
+              {parts.slice(1).map((part, idx) => {
+                 const [jsonString, ...htmlParts] = part.split('__PLOTLY_JSON_END__');
+                 const afterHtml = htmlParts.join('__PLOTLY_JSON_END__'); 
+                 
+                 try {
+                    const plotData = JSON.parse(jsonString);
+                    return (
+                      <React.Fragment key={idx}>
+                        <div className="w-full overflow-x-auto">
+                          <Plot 
+                            data={plotData.data} 
+                            layout={{...plotData.layout, autosize: true, margin: { t: 40, r: 20, l: 40, b: 40 }}} 
+                            useResizeHandler={true}
+                            style={{ width: '100%', minHeight: '400px' }}
+                            config={{ 
+                              responsive: true, 
+                              displayModeBar: true,
+                              modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+                              toImageButtonOptions: {
+                                format: 'png',
+                                filename: 'statstudio_plot',
+                                height: 500,
+                                width: 700,
+                                scale: 2
+                              }
+                            }}
+                          />
+                        </div>
+                        {afterHtml && afterHtml.trim() && (
+                           <div dangerouslySetInnerHTML={{ __html: afterHtml }} className="mt-4 prose max-w-none prose-table:w-full prose-table:border-collapse prose-th:border prose-th:p-2 prose-th:bg-slate-50 prose-td:border prose-td:p-2 overflow-x-auto" />
+                        )}
+                      </React.Fragment>
+                    );
+                 } catch(e) {
+                    return <div key={idx} className="text-red-500">Error parsing plot data</div>;
+                 }
+              })}
             </div>
-          );
-       } catch(e) {
-          return <div className="text-red-500">Error parsing plot data</div>;
-       }
+       );
     }
 
     return (

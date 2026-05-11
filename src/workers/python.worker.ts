@@ -14,30 +14,24 @@ self.onmessage = async (event) => {
         });
         self.postMessage({ type: 'STATUS', status: 'Loading pandas, numpy, scipy...' });
         try {
-          await pyodide.loadPackage(['pandas', 'numpy', 'scipy', 'scikit-learn', 'statsmodels', 'micropip']);
+          await pyodide.loadPackage('micropip');
+          await pyodide.runPythonAsync(`
+import micropip
+await micropip.install(['pandas', 'numpy', 'scipy', 'scikit-learn', 'statsmodels', 'plotly', 'openpyxl'])
+          `);
         } catch (err) {
-          console.error("Failed to load built-in packages:", err);
-          // Try loading them individually or skip extras
-          const corePkgs = ['pandas', 'numpy', 'scipy', 'micropip'];
-          for (const pkg of corePkgs) {
-             try { await pyodide.loadPackage(pkg); } catch (e) {}
-          }
+          console.error("Failed to load environment with micropip:", err);
+          // Fallback to loadPackage
+          try {
+             await pyodide.loadPackage(['pandas', 'numpy', 'scipy', 'scikit-learn', 'statsmodels']);
+          } catch(e) { console.error("Fallback loadPackage failed:", e); }
         }
         
         self.postMessage({ type: 'STATUS', status: 'Finalizing Python environment...' });
         // Setup Python environment
         await pyodide.runPythonAsync(`
-import micropip
 import sys
 import io
-
-async def setup_deps():
-    try:
-        await micropip.install(["plotly", "openpyxl"])
-    except Exception as e:
-        print(f"Warning: Dependency install failed: {e}")
-
-await setup_deps()
 
 import pandas as pd
 import numpy as np

@@ -85,13 +85,16 @@ export function Charts() {
     let code = `import plotly.express as px\nimport plotly.io as pio\n`;
     const themeStr = `template='${theme}'`;
 
+    const codeBins = bins?.[0] ?? 30;
+    const codeOpacity = opacity?.[0] ?? 0.7;
+
     if (num === 1 && cat === 0) {
       const v = numVars[0];
       if (selectedChart === 'histogram') {
         const o = orientation === 'h' ? `y='${v}'` : `x='${v}'`;
-        code += `fig = px.histogram(df, ${o}, nbins=${bins[0]}, opacity=${opacity[0]}, title='Histogramme: ${v}', ${themeStr})\n`;
+        code += `fig = px.histogram(df, ${o}, nbins=${codeBins}, opacity=${codeOpacity}, title='Histogramme: ${v}', ${themeStr})\n`;
       } else if (selectedChart === 'density') {
-        code += `import plotly.figure_factory as ff\nfig = ff.create_distplot([df['${v}'].dropna()], ['${v}'], bin_size=(df['${v}'].max()-df['${v}'].min())/${bins[0]})\nfig.update_layout(title='Density Plot: ${v}', ${themeStr})\n`;
+        code += `import plotly.figure_factory as ff\nfig = ff.create_distplot([df['${v}'].dropna()], ['${v}'], bin_size=max((df['${v}'].max()-df['${v}'].min())/${codeBins}, 1e-9))\nfig.update_layout(title='Density Plot: ${v}', ${themeStr})\n`;
       } else if (selectedChart === 'boxplot') {
         const o = orientation === 'h' ? `x='${v}'` : `y='${v}'`;
         const pts = showOutliers ? "'outliers'" : 'False';
@@ -119,10 +122,10 @@ export function Charts() {
     } else if (num === 2 && cat === 0) {
       const [v1, v2] = numVars;
       if (selectedChart === 'scatter') {
-        code += `fig = px.scatter(df, x='${v1}', y='${v2}', opacity=${opacity[0]}, title='Scatter: ${v1} vs ${v2}', ${themeStr})\n`;
+        code += `fig = px.scatter(df, x='${v1}', y='${v2}', opacity=${codeOpacity}, title='Scatter: ${v1} vs ${v2}', ${themeStr})\n`;
       } else if (selectedChart === 'scatter_trend') {
-        const t = trendline === 'none' ? "'ols'" : `'${trendline}'`;
-        code += `fig = px.scatter(df, x='${v1}', y='${v2}', trendline=${t}, opacity=${opacity[0]}, title='Scatter + Trend: ${v1} vs ${v2}', ${themeStr})\n`;
+        const t = (trendline === 'none' || !trendline) ? "'ols'" : `'${trendline}'`;
+        code += `fig = px.scatter(df, x='${v1}', y='${v2}', trendline=${t}, opacity=${codeOpacity}, title='Scatter + Trend: ${v1} vs ${v2}', ${themeStr})\n`;
       } else if (selectedChart === 'density2d') {
         code += `fig = px.density_contour(df, x='${v1}', y='${v2}', title='2D Density: ${v1} vs ${v2}', ${themeStr})\n`;
       }
@@ -140,7 +143,7 @@ export function Charts() {
         const o = orientation === 'h' ? `x='${n}', y='${c}', orientation='h'` : `x='${c}', y='${n}'`;
         code += `fig = px.strip(df, ${o}, color='${c}', title='Strip: ${n} par ${c}', ${themeStr})\n`;
       } else if (selectedChart === 'hist_facet') {
-        code += `fig = px.histogram(df, x='${n}', color='${c}', facet_col='${c}', opacity=${opacity[0]}, nbins=${bins[0]}, title='Histograms: ${n} par ${c}', ${themeStr})\n`;
+        code += `fig = px.histogram(df, x='${n}', color='${c}', facet_col='${c}', opacity=${codeOpacity}, nbins=${codeBins}, title='Histograms: ${n} par ${c}', ${themeStr})\n`;
       }
     } else if (num === 0 && cat === 2) {
       const [c1, c2] = catVars;
@@ -161,7 +164,7 @@ export function Charts() {
       }
     }
 
-    code += `print("__PLOTLY_JSON__" + pio.to_json(fig))\n`;
+    code += `print("__PLOTLY_JSON_START__" + pio.to_json(fig) + "__PLOTLY_JSON_END__")\n`;
     return code;
   };
 

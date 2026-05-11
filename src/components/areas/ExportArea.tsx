@@ -99,6 +99,7 @@ base64.b64encode(json_data.encode('utf-8')).decode('utf-8')
         th { background-color: #f8f9fa !important; }
         .plotly-placeholder { font-style: italic; color: #94a3b8; border: 1px dashed #cbd5e1; padding: 20px; text-align: center; border-radius: 8px; }
     </style>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 </head>
 <body>
     <div class="container shadow-sm">
@@ -109,17 +110,45 @@ base64.b64encode(json_data.encode('utf-8')).decode('utf-8')
             Date : ${new Date().toLocaleString('fr-FR')}
         </div>
 
-        ${results.map(res => `
+        ${results.map((res, idx) => {
+            let content = res.output;
+            let scripts = '';
+            
+            if (content.includes('__PLOTLY_JSON_START__')) {
+                const parts = content.split('__PLOTLY_JSON_START__');
+                content = parts[0];
+                
+                parts.slice(1).forEach((part, chartIdx) => {
+                    const [jsonString, ...htmlParts] = part.split('__PLOTLY_JSON_END__');
+                    const afterHtml = htmlParts.join('__PLOTLY_JSON_END__');
+                    const chartId = `plotly-chart-${idx}-${chartIdx}`;
+                    
+                    content += `<div id="${chartId}" style="width:100%; max-width:800px; height: 500px; margin: 20px auto;"></div>`;
+                    if (afterHtml && afterHtml.trim()) {
+                        content += afterHtml;
+                    }
+                    
+                    scripts += `
+                    <script>
+                        (function() {
+                            var data = ${jsonString};
+                            var layout = data.layout || {};
+                            layout.autosize = true;
+                            Plotly.newPlot('${chartId}', data.data, layout, {responsive: true});
+                        })();
+                    </script>
+                    `;
+                });
+            }
+
+            return `
             <div class="result-item">
                 <div class="result-title">${res.title}</div>
-                <div class="result-content">
-                    ${res.output.includes('__PLOTLY_JSON__') 
-                      ? res.output.split('__PLOTLY_JSON__')[0] + '<div class="plotly-placeholder">[ Graphique Interactif Plotly - Disponible dans l\'application ]</div>'
-                      : res.output
-                    }
-                </div>
+                <div class="result-content">${content}</div>
+                ${scripts}
             </div>
-        `).join('')}
+            `;
+        }).join('')}
         
         <footer class="mt-5 pt-4 border-top text-center text-muted text-small">
             Généré avec StatStudio — Plateforme d'analyse statistique locale et sécurisée.

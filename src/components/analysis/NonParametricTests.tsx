@@ -26,7 +26,11 @@ stat, p = stats.mannwhitneyu(group1, group2)
 
 print(f"<h3>Mann-Whitney U Test: ${var1} by ${var2}</h3>")
 print(f"<p><b>U-Statistic:</b> {stat:.4f}, <b>p-value:</b> {p:.4e}</p>")
-print(f"<div className='mt-4 p-3 bg-slate-50 rounded border'>{interpret_p(p)}</div>")
+interp_pval = "La différence de distribution entre les deux groupes est statistiquement significative (p < 0.05)." if p < 0.05 else "La différence entre les deux groupes n'est pas statistiquement significative (p >= 0.05)."
+print("<div className='mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-md text-slate-800'>")
+print("<h4 className='font-bold text-blue-900 mb-2'>Interprétation des Résultats</h4>")
+print(f"<p className='mb-1'><b>Significativité :</b> {interp_pval}</p>")
+print("</div>")
 `;
     } else if (method === 'kruskal') {
       code = `
@@ -34,7 +38,12 @@ groups = [group['${var1}'].dropna() for name, group in df.groupby('${var2}')]
 stat, p = stats.kruskal(*groups)
 print(f"<h3>Kruskal-Wallis H Test: ${var1} by ${var2}</h3>")
 print(f"<p><b>H-Statistic:</b> {stat:.4f}, <b>p-value:</b> {p:.4e}</p>")
-print(f"<div className='mt-4 p-3 bg-slate-50 rounded border'>{interpret_p(p)}</div>")
+interp_pval = "Il existe une différence statistiquement significative dans les distributions entre au moins deux groupes (p < 0.05)." if p < 0.05 else "Les distributions ne diffèrent pas significativement entre les groupes (p >= 0.05)."
+print("<div className='mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-md text-slate-800'>")
+print("<h4 className='font-bold text-blue-900 mb-2'>Interprétation des Résultats</h4>")
+print(f"<p className='mb-1'><b>Significativité Globale :</b> {interp_pval}</p>")
+print("</div>")
+
 `;
     }
 

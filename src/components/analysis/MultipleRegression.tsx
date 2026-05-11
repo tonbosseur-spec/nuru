@@ -69,17 +69,36 @@ x_line = np.array([min(qq[0][0]), max(qq[0][0])])
 y_line = qq[1][1] + qq[1][0] * x_line
 fig_qq.add_trace(go.Scatter(x=x_line, y=y_line, mode='lines', name='Normal', line=dict(color='red', dash='dash')))
 fig_qq.update_layout(title='QQ Plot des Résidus', xaxis_title='Quantiles Théoriques', yaxis_title='Quantiles Observés')
-print("__PLOTLY_JSON__" + pio.to_json(fig_qq))
+print("__PLOTLY_JSON_START__" + pio.to_json(fig_qq) + "__PLOTLY_JSON_END__")
 
 # Residuals vs Fitted
 fitted = model.fittedvalues
 fig_resid = px.scatter(x=fitted, y=res, labels={'x': 'Valeurs ajustées', 'y': 'Résidus'}, title='Homoscédasticité: Résidus vs Ajustées')
 fig_resid.add_hline(y=0, line_dash='dash', line_color='red')
-print("__PLOTLY_JSON__" + pio.to_json(fig_resid))
+print("__PLOTLY_JSON_START__" + pio.to_json(fig_resid) + "__PLOTLY_JSON_END__")
 `;
 
     // Add partial regression plots loop inside python if we want, or just feature importance
     code += `
+# Interpretation
+pval = model.f_pvalue
+r2 = model.rsquared
+
+interp_pval = "Le modèle global est statistiquement significatif (p < 0.05)." if pval < 0.05 else "Le modèle global n'est pas statistiquement significatif (p >= 0.05)."
+interp_r2 = f"Le modèle explique {r2*100:.1f}% de la variance de {y.name}."
+
+significant_vars = [model.pvalues.index[i] for i, p in enumerate(model.pvalues) if p < 0.05 and model.pvalues.index[i] != 'const']
+
+print("<div className='mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-md text-slate-800'>")
+print("<h4 className='font-bold text-blue-900 mb-2'>Interprétation des Résultats</h4>")
+print(f"<p className='mb-1'><b>Significativité Globale :</b> {interp_pval}</p>")
+print(f"<p className='mb-1'><b>Pouvoir explicatif :</b> {interp_r2}</p>")
+if len(significant_vars) > 0:
+    print(f"<p><b>Variables significatives (p < 0.05) :</b> {', '.join(significant_vars)}.</p>")
+else:
+    print("<p>Aucune variable explicative n'est individuellement significative (p < 0.05).</p>")
+print("</div>")
+
 # Importance des variables (Coefficients standardisés absolus)
 std_data = (data - data.mean()) / data.std()
 std_X = sm.add_constant(std_data[indep_vars])
@@ -88,7 +107,7 @@ imp = std_model.params[1:].abs().sort_values(ascending=True)
 
 fig_imp = px.bar(x=imp.values, y=imp.index, orientation='h', title='Importance des variables (Coefficients standardisés |β|)')
 fig_imp.update_layout(xaxis_title='|β| standardisé', yaxis_title='Variable')
-print("__PLOTLY_JSON__" + pio.to_json(fig_imp))
+print("__PLOTLY_JSON_START__" + pio.to_json(fig_imp) + "__PLOTLY_JSON_END__")
 `;
 
     try {
