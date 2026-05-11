@@ -84,7 +84,7 @@ base64.b64encode(json_data.encode('utf-8')).decode('utf-8')
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rapport StatStudio - ${workspaceName}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; background: #f8f9fa; }
         .container { max-width: 900px; background: white; padding: 40px; border-radius: 12px; shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -99,7 +99,7 @@ base64.b64encode(json_data.encode('utf-8')).decode('utf-8')
         th { background-color: #f8f9fa !important; }
         .plotly-placeholder { font-style: italic; color: #94a3b8; border: 1px dashed #cbd5e1; padding: 20px; text-align: center; border-radius: 8px; }
     </style>
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="/js/plotly.min.js"></script>
 </head>
 <body>
     <div class="container shadow-sm">

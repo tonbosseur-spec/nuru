@@ -8,16 +8,24 @@ self.onmessage = async (event) => {
   try {
     if (type === 'INIT') {
       if (!pyodide) {
-        self.postMessage({ type: 'STATUS', status: 'Loading Python core...' });
+        self.postMessage({ type: 'STATUS', status: 'Initialisation de Python (Local)...' });
         pyodide = await loadPyodide({
-          indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/',
+          indexURL: '/pyodide/',
         });
-        self.postMessage({ type: 'STATUS', status: 'Loading pandas, numpy, scipy...' });
+        self.postMessage({ type: 'STATUS', status: 'Chargement des bibliothèques locales...' });
         try {
-          await pyodide.loadPackage('micropip');
+          // Use loadPackage for locally available wheels in pyodide-lock.json
+          await pyodide.loadPackage(['pandas', 'numpy', 'scipy', 'scikit-learn', 'statsmodels', 'micropip']);
+          
+          // Plotly might still need network if not all wheels are downloaded, 
+          // but core stats will work 100% offline now.
           await pyodide.runPythonAsync(`
 import micropip
-await micropip.install(['pandas', 'numpy', 'scipy', 'scikit-learn', 'statsmodels', 'plotly', 'openpyxl'])
+# we can try to install remaining small deps
+try:
+    await micropip.install(['plotly', 'openpyxl'], keep_going=True)
+except Exception:
+    pass
           `);
         } catch (err) {
           console.error("Failed to load environment with micropip:", err);

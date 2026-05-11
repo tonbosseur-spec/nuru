@@ -18,8 +18,8 @@ export default defineConfig(({mode}) => {
           theme_color: '#ffffff',
         },
         workbox: {
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm}'],
-          maximumFileSizeToCacheInBytes: 10485760, // 10MB
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm,whl,zip}'],
+          maximumFileSizeToCacheInBytes: 104857600, // 100MB
           runtimeCaching: [
             {
               urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/.*/i,
