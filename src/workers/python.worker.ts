@@ -14,25 +14,37 @@ self.onmessage = async (event) => {
         });
         self.postMessage({ type: 'STATUS', status: 'Chargement des bibliothèques locales...' });
         try {
-          // Use loadPackage for locally available wheels in pyodide-lock.json
-          await pyodide.loadPackage(['pandas', 'numpy', 'scipy', 'scikit-learn', 'statsmodels', 'micropip']);
+          // 1. Charger micropip en premier
+          await pyodide.loadPackage('micropip');
           
-          // Plotly might still need network if not all wheels are downloaded, 
-          // but core stats will work 100% offline now.
+          // 2. Charger les packages qui sont dans le lock file (pandas, numpy, scipy, statsmodels, sklearn)
+          // Note: scikit-learn s'appelle scikit-learn dans Pyodide
+          await pyodide.loadPackage(['pandas', 'numpy', 'scipy', 'scikit-learn', 'statsmodels']);
+          
+          // 3. Charger les packages restants via micropip à partir des fichiers locaux
           await pyodide.runPythonAsync(`
 import micropip
-# we can try to install remaining small deps
+import os
+
+# Installation locale pour Plotly et Openpyxl
 try:
-    await micropip.install(['plotly', 'openpyxl'], keep_going=True)
-except Exception:
-    pass
+    # On installe les .whl locaux qu'on a téléchargé dans /public/pyodide/
+    # Dans l'environnement browser/worker, le chemin relatif /pyodide/ correspond au dossier public/pyodide/
+    await micropip.install([
+        '/pyodide/tenacity-8.2.3-py3-none-any.whl',
+        '/pyodide/plotly-5.24.1-py3-none-any.whl',
+        '/pyodide/et_xmlfile-1.1.0-py3-none-any.whl',
+        '/pyodide/openpyxl-3.1.2-py2.py3-none-any.whl'
+    ])
+except Exception as e:
+    print(f"Erreur d'installation locale: {e}")
           `);
         } catch (err) {
-          console.error("Failed to load environment with micropip:", err);
-          // Fallback to loadPackage
+          console.error("Failed to load environment:", err);
+          // Tentative de secours ultime pour pandas si tout a échoué
           try {
-             await pyodide.loadPackage(['pandas', 'numpy', 'scipy', 'scikit-learn', 'statsmodels']);
-          } catch(e) { console.error("Fallback loadPackage failed:", e); }
+             await pyodide.loadPackage('pandas');
+          } catch(e) {}
         }
         
         self.postMessage({ type: 'STATUS', status: 'Finalizing Python environment...' });
