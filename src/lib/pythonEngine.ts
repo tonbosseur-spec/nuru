@@ -3,9 +3,10 @@ import { useStore } from '../store';
 class PythonEngine {
   worker: Worker | null = null;
   callbacks: Map<string, Function> = new Map();
+  readyPromise: Promise<void> | null = null;
 
   init() {
-    if (this.worker) return;
+    if (this.worker) return this.readyPromise;
     
     this.worker = new Worker(new URL('../workers/python.worker.ts', import.meta.url), {
       type: 'module'
@@ -17,7 +18,7 @@ class PythonEngine {
       if (type === 'STATUS') {
         useStore.getState().setEngineReady(false, status);
       } else if (type === 'INIT_DONE') {
-        useStore.getState().setEngineReady(true, 'Ready');
+        useStore.getState().setEngineReady(true, 'Prêt');
         if (id && this.callbacks.has(id)) {
           this.callbacks.get(id)!(payload);
           this.callbacks.delete(id);
@@ -34,7 +35,7 @@ class PythonEngine {
         }
       } else if (type === 'ERROR') {
         console.error('Python Engine Error:', error);
-        useStore.getState().setEngineReady(false, `Error: ${error}`);
+        useStore.getState().setEngineReady(false, `Erreur: ${error}`);
         if (id && this.callbacks.has(id)) {
           this.callbacks.get(id)!({ error });
           this.callbacks.delete(id);
@@ -43,13 +44,15 @@ class PythonEngine {
     };
 
     const id = Date.now().toString();
-    return new Promise((resolve) => {
+    this.readyPromise = new Promise((resolve) => {
       this.callbacks.set(id, resolve);
       this.worker!.postMessage({ id, type: 'INIT' });
     });
+    return this.readyPromise;
   }
 
   async loadData(csvStr: string): Promise<any> {
+    await this.init();
     const id = Date.now().toString() + Math.random().toString();
     return new Promise((resolve) => {
       this.callbacks.set(id, resolve);
@@ -58,6 +61,7 @@ class PythonEngine {
   }
 
   async loadFile(buffer: ArrayBuffer, filename: string): Promise<any> {
+    await this.init();
     const id = Date.now().toString() + Math.random().toString();
     return new Promise((resolve) => {
       this.callbacks.set(id, resolve);
@@ -66,6 +70,7 @@ class PythonEngine {
   }
 
   async runCode(code: string): Promise<{output: string, result: any, error?: string}> {
+    await this.init();
     const id = Date.now().toString() + Math.random().toString();
     return new Promise((resolve) => {
       this.callbacks.set(id, resolve);

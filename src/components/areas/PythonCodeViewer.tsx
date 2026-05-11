@@ -1,6 +1,6 @@
 import React from 'react';
 import { useStore } from '@/src/store';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Copy, Download } from 'lucide-react';
@@ -44,9 +44,10 @@ export function PythonCodeViewer() {
         </CardHeader>
         <CardContent className="flex-1 p-0 min-h-0 relative">
           <ScrollArea className="h-full w-full absolute inset-0">
-            <pre className="p-6 text-sm font-mono text-slate-800 break-all whitespace-pre-wrap">
+            <pre className="p-6 text-sm font-mono text-slate-800 whitespace-pre">
               {allCode || '# Aucun code généré pour le moment.\n# Exécutez des analyses pour voir le code ici.'}
             </pre>
+            <ScrollBar orientation="horizontal" />
           </ScrollArea>
         </CardContent>
       </Card>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore, ResultItem } from '@/src/store';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Trash2, Code, Copy, ChevronDown, ChevronRight, Library } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Plot from 'react-plotly.js';
@@ -111,13 +111,13 @@ export function ResultsArea() {
           <Trash2 className="w-4 h-4 mr-2" /> Clear All
         </Button>
       </div>
-      <ScrollArea className="flex-1 min-h-0">
-         <div className="p-6 space-y-8 pb-10">
+      <ScrollArea className="flex-1 min-h-0 w-full overflow-hidden">
+         <div className="p-6 space-y-8 pb-10 min-w-max">
            {results.map((res) => {
              const libraries = res.libraries || extractLibraries(res.code);
              return (
-               <div key={res.id} className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm transition-all hover:shadow-md">
-                 <div className="bg-slate-50 px-4 py-3 font-semibold text-slate-700 border-b flex justify-between items-center">
+               <div key={res.id} className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm transition-all hover:shadow-md inline-block min-w-full">
+                 <div className="bg-slate-50 px-4 py-3 font-semibold text-slate-700 border-b flex justify-between items-center sticky left-0 w-full">
                     <span>{res.title}</span>
                     <div className="flex items-center space-x-2">
                       <Button variant="ghost" size="sm" onClick={copyTable} className="h-7 text-[10px] uppercase font-bold text-slate-500 hover:text-blue-600" title="Copier les tableaux">
@@ -135,21 +135,22 @@ export function ResultsArea() {
 
                  {expandedCode[res.id] && (
                    <div className="bg-slate-900 p-4 font-mono text-xs overflow-x-auto text-blue-200 border-b">
-                     <div className="flex items-center mb-2 text-slate-500 font-sans tracking-wide uppercase text-[10px] font-bold">
+                     <div className="flex items-center mb-2 text-slate-500 font-sans tracking-wide uppercase text-[10px] font-bold sticky left-0">
                        <Library className="w-3 h-3 mr-1" />
                        Libs: {libraries.length > 0 ? libraries.join(', ') : 'standard'}
                      </div>
-                     <pre>{res.code}</pre>
+                     <pre className="whitespace-pre-wrap">{res.code}</pre>
                    </div>
                  )}
 
-                 <div className="p-5 overflow-hidden text-sm text-slate-800">
+                 <div className="p-5 overflow-auto max-w-full text-sm text-slate-800">
                    {renderContent(res)}
                  </div>
                </div>
              );
            })}
          </div>
+         <ScrollBar orientation="horizontal" />
       </ScrollArea>
     </div>
   );

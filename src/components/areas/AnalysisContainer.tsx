@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { ResultsArea } from '../ResultsArea';
 import { LucideIcon } from 'lucide-react';
 
@@ -45,6 +45,7 @@ export function AnalysisContainer({ categories }: Props) {
                 </button>
               ))}
             </div>
+            <ScrollBar orientation="horizontal" />
           </ScrollArea>
         </div>
 
@@ -53,10 +54,11 @@ export function AnalysisContainer({ categories }: Props) {
               <div className="p-2.5 bg-slate-50 border-b font-bold text-[10px] uppercase tracking-wider text-slate-400">
                 Configuration
               </div>
-              <ScrollArea className="flex-1 max-h-[400px] xl:max-h-none">
+              <ScrollArea className="flex-1 max-h-[400px] xl:max-h-none w-full">
                 <CardContent className="p-4">
                   {activeSpec.component}
                 </CardContent>
+                <ScrollBar orientation="horizontal" />
               </ScrollArea>
            </Card>
         </div>
