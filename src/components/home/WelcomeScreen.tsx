@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useStore, getWorkspaceSummaries, deleteWorkspace, getWorkspace, WorkspaceSummary } from '@/src/store';
+import { useStore, getWorkspaceSummaries, deleteWorkspace, getWorkspace, WorkspaceSummary } from '@/store';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { FolderOpen, Plus, Zap, Trash2, UploadCloud, Beaker, Clock, FileText, ChevronRight, LayoutGrid } from 'lucide-react';
-import { engine } from '@/src/lib/pythonEngine';
+import { engine } from '@/lib/pythonEngine';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 import { motion, AnimatePresence } from 'motion/react';

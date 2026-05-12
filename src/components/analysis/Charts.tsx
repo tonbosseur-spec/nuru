@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { useStore } from '@/src/store';
-import { engine } from '@/src/lib/pythonEngine';
+import { useStore } from '@/store';
+import { engine } from '@/lib/pythonEngine';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';

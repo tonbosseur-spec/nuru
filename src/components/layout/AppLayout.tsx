@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useStore } from '@/src/store';
-import { useTranscriptionStore } from '@/src/store/transcriptionStore';
-import { engine } from '@/src/lib/pythonEngine';
+import { useStore } from '@/store';
+import { useTranscriptionStore } from '@/store/transcriptionStore';
+import { engine } from '@/lib/pythonEngine';
 import { DataImport } from '../DataImport';
 import { DataTabView } from '../DataTabView';
 import { DataTranscription } from '../DataTranscription';

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useStore, ResultItem } from '@/src/store';
+import { useStore, ResultItem } from '@/store';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Trash2, Code, Copy, ChevronDown, ChevronRight, Library } from 'lucide-react';
 import { Button } from '@/components/ui/button';

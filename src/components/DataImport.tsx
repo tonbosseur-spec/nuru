@@ -1,9 +1,9 @@
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { UploadCloud, FileSpreadsheet, Keyboard } from 'lucide-react';
-import { engine } from '@/src/lib/pythonEngine';
-import { useStore } from '@/src/store';
-import { useTranscriptionStore } from '@/src/store/transcriptionStore';
+import { engine } from '@/lib/pythonEngine';
+import { useStore } from '@/store';
+import { useTranscriptionStore } from '@/store/transcriptionStore';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 

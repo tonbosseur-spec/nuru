@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useStore } from '@/src/store';
-import { engine } from '@/src/lib/pythonEngine';
+import { useStore } from '@/store';
+import { engine } from '@/lib/pythonEngine';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';

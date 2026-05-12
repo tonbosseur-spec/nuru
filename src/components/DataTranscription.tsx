@@ -13,9 +13,9 @@ import {
   CheckCircle2,
   Table as TableIcon
 } from 'lucide-react';
-import { useTranscriptionStore, Variable, VariableType } from '@/src/store/transcriptionStore';
-import { useStore } from '@/src/store';
-import { engine } from '@/src/lib/pythonEngine';
+import { useTranscriptionStore, Variable, VariableType } from '@/store/transcriptionStore';
+import { useStore } from '@/store';
+import { engine } from '@/lib/pythonEngine';
 import { toast } from 'sonner';
 
 export function DataTranscription() {

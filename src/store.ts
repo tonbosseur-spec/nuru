@@ -265,7 +265,7 @@ export const useStore = create<AppState>((set, get) => ({
           get().loadWorkspaceData(data);
           // Also load dataset into engine if present
           if (data.csvData) {
-            const { engine } = await import('@/src/lib/pythonEngine');
+            const { engine } = await import('@/lib/pythonEngine');
             await engine.loadData(data.csvData);
           }
         } catch (err) {
@@ -285,7 +285,7 @@ export const useStore = create<AppState>((set, get) => ({
             const data = JSON.parse(text);
             get().loadWorkspaceData(data);
             if (data.csvData) {
-              const { engine } = await import('@/src/lib/pythonEngine');
+              const { engine } = await import('@/lib/pythonEngine');
               await engine.loadData(data.csvData);
             }
           } catch (err) {

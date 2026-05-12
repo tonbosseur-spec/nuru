@@ -1,10 +1,10 @@
 import React from 'react';
-import { useStore, getWorkspace } from '@/src/store';
+import { useStore, getWorkspace } from '@/store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, FileText, Database, Package } from 'lucide-react';
 import { toast } from 'sonner';
-import { engine } from '@/src/lib/pythonEngine';
+import { engine } from '@/lib/pythonEngine';
 
 export function ExportArea() {
   const { datasetName, currentWorkspaceId, workspaceName, results, user } = useStore();
