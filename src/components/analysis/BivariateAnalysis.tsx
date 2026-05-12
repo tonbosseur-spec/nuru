@@ -6,12 +6,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
+import { VariableSelector } from './AnalysisUI';
+import { Checkbox } from '@/components/ui/checkbox';
+
 export function BivariateAnalysis() {
   const { columns, addResult, isEngineReady } = useStore();
   const [var1, setVar1] = useState<string>('');
   const [var2, setVar2] = useState<string>('');
   const [isRunning, setIsRunning] = useState(false);
-
+  
   // Options
   const [showScatter, setShowScatter] = useState(true);
   const [showCorrMatrix, setShowCorrMatrix] = useState(true);
@@ -177,83 +180,114 @@ print("__PLOTLY_JSON_START__" + pio.to_json(fig_violin) + "__PLOTLY_JSON_END__")
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4">
-        <div>
-          <Label className="mb-1.5 block">Variable 1</Label>
-          <Select value={var1} onValueChange={setVar1}>
-            <SelectTrigger><SelectValue placeholder="Sélectionner variable 1" /></SelectTrigger>
-            <SelectContent>
-              {columns.map(c => <SelectItem key={c.name} value={c.name}>{c.name} ({c.type})</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label className="mb-1.5 block">Variable 2</Label>
-          <Select value={var2} onValueChange={setVar2}>
-            <SelectTrigger><SelectValue placeholder="Sélectionner variable 2" /></SelectTrigger>
-            <SelectContent>
-              {columns.map(c => <SelectItem key={c.name} value={c.name}>{c.name} ({c.type})</SelectItem>)}
-            </SelectContent>
-          </Select>
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 gap-6">
+          <VariableSelector 
+            variables={columns}
+            selected={var1}
+            onSelect={setVar1}
+            label="Première Variable"
+          />
+          <VariableSelector 
+            variables={columns}
+            selected={var2}
+            onSelect={setVar2}
+            label="Seconde Variable"
+          />
         </div>
 
         {v1 && v2 && v1 !== v2 && (
-          <div className="p-4 bg-slate-50 border rounded-lg space-y-4">
-            <h4 className="font-semibold text-sm">Options de statistiques</h4>
+          <div className="p-5 bg-slate-50/50 border border-slate-200 rounded-2xl space-y-5 animate-in fade-in zoom-in-95 duration-300 shadow-inner">
+            <h4 className="text-xs font-bold font-sans uppercase tracking-[0.1em] text-slate-400">Options d'analyse bivariée</h4>
             
-            {isNum1 && isNum2 ? (
-              <>
-                <div className="flex items-center justify-between">
-                  <Label>Nuage de points (Scatter)</Label>
-                  <input type="checkbox" checked={showScatter} onChange={e => setShowScatter(e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary" />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label>Heatmap Corrélations</Label>
-                  <input type="checkbox" checked={showCorrMatrix} onChange={e => setShowCorrMatrix(e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary" />
-                </div>
-              </>
-            ) : (!isNum1 && !isNum2) ? (
-              <>
-                <div className="flex items-center justify-between">
-                  <Label>Tests / Associations (Chi-2, Cramer)</Label>
-                  <input type="checkbox" checked={showChi2} onChange={e => setShowChi2(e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary" />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label>Tableaux croisés</Label>
-                  <input type="checkbox" checked={showEffectifs} onChange={e => setShowEffectifs(e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary" />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label>Barres groupées</Label>
-                  <input type="checkbox" checked={showBarGrouped} onChange={e => setShowBarGrouped(e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary" />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label>Diag. parallèles</Label>
-                  <input type="checkbox" checked={showMosaic} onChange={e => setShowMosaic(e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary" />
-                </div>
-              </>
-            ) : (
-               <>
-                <div className="flex items-center justify-between">
-                  <Label>Moyennes & Infos par Modalité</Label>
-                  <input type="checkbox" checked={showMeansInfo} onChange={e => setShowMeansInfo(e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary" />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label>Boxplots</Label>
-                  <input type="checkbox" checked={showBoxplots} onChange={e => setShowBoxplots(e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary" />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label>Violin Plots</Label>
-                  <input type="checkbox" checked={showViolins} onChange={e => setShowViolins(e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary" />
-                </div>
-              </>
-            )}
+            <div className="grid grid-cols-1 gap-3">
+              {isNum1 && isNum2 ? (
+                <>
+                  <div 
+                    className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
+                    onClick={() => setShowScatter(!showScatter)}
+                  >
+                    <Label className="text-sm font-medium text-slate-700 cursor-pointer flex-1">Nuage de points (Scatter)</Label>
+                    <Checkbox checked={showScatter} onCheckedChange={() => setShowScatter(!showScatter)} />
+                  </div>
+                  <div 
+                    className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
+                    onClick={() => setShowCorrMatrix(!showCorrMatrix)}
+                  >
+                    <Label className="text-sm font-medium text-slate-700 cursor-pointer flex-1">Heatmap Corrélations</Label>
+                    <Checkbox checked={showCorrMatrix} onCheckedChange={() => setShowCorrMatrix(!showCorrMatrix)} />
+                  </div>
+                </>
+              ) : (!isNum1 && !isNum2) ? (
+                <>
+                  <div 
+                    className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
+                    onClick={() => setShowChi2(!showChi2)}
+                  >
+                    <Label className="text-sm font-medium text-slate-700 cursor-pointer flex-1">Tests / Associations (Chi-2, Cramer)</Label>
+                    <Checkbox checked={showChi2} onCheckedChange={() => setShowChi2(!showChi2)} />
+                  </div>
+                  <div 
+                    className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
+                    onClick={() => setShowEffectifs(!showEffectifs)}
+                  >
+                    <Label className="text-sm font-medium text-slate-700 cursor-pointer flex-1">Tableaux croisés</Label>
+                    <Checkbox checked={showEffectifs} onCheckedChange={() => setShowEffectifs(!showEffectifs)} />
+                  </div>
+                  <div 
+                    className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
+                    onClick={() => setShowBarGrouped(!showBarGrouped)}
+                  >
+                    <Label className="text-sm font-medium text-slate-700 cursor-pointer flex-1">Barres groupées</Label>
+                    <Checkbox checked={showBarGrouped} onCheckedChange={() => setShowBarGrouped(!showBarGrouped)} />
+                  </div>
+                  <div 
+                    className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
+                    onClick={() => setShowMosaic(!showMosaic)}
+                  >
+                    <Label className="text-sm font-medium text-slate-700 cursor-pointer flex-1">Diag. parallèles (Mosaic)</Label>
+                    <Checkbox checked={showMosaic} onCheckedChange={() => setShowMosaic(!showMosaic)} />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div 
+                    className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
+                    onClick={() => setShowMeansInfo(!showMeansInfo)}
+                  >
+                    <Label className="text-sm font-medium text-slate-700 cursor-pointer flex-1">Moyennes & Infos par Modalité</Label>
+                    <Checkbox checked={showMeansInfo} onCheckedChange={() => setShowMeansInfo(!showMeansInfo)} />
+                  </div>
+                  <div 
+                    className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
+                    onClick={() => setShowBoxplots(!showBoxplots)}
+                  >
+                    <Label className="text-sm font-medium text-slate-700 cursor-pointer flex-1">Boxplots</Label>
+                    <Checkbox checked={showBoxplots} onCheckedChange={() => setShowBoxplots(!showBoxplots)} />
+                  </div>
+                  <div 
+                    className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
+                    onClick={() => setShowViolins(!showViolins)}
+                  >
+                    <Label className="text-sm font-medium text-slate-700 cursor-pointer flex-1">Violin Plots</Label>
+                    <Checkbox checked={showViolins} onCheckedChange={() => setShowViolins(!showViolins)} />
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         )}
-
       </div>
-      <Button onClick={runAnalysis} disabled={!isEngineReady || isRunning || !var1 || !var2 || var1 === var2} className="w-full">
-        {isRunning ? 'Calcul en cours...' : 'Lancer l\'analyse'}
-      </Button>
+      
+      <div className="pt-4 border-t border-slate-100">
+        <Button 
+          onClick={runAnalysis} 
+          disabled={!isEngineReady || isRunning || !var1 || !var2 || var1 === var2} 
+          className="w-full bg-indigo-600 hover:bg-indigo-700 h-11 text-sm font-semibold shadow-lg shadow-indigo-100 transition-all active:scale-[0.98]"
+        >
+          {isRunning ? 'Calcul en cours...' : 'Lancer l\'analyse'}
+        </Button>
+      </div>
     </div>
   );
 }

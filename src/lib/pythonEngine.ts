@@ -92,6 +92,30 @@ class PythonEngine {
       return { output: "", result: null, error: String(error) };
     }
   }
+
+  async renameColumn(oldName: string, newName: string) {
+    await this.init();
+    const response = await fetch(`${API_URL}/prepare/rename?old_name=${encodeURIComponent(oldName)}&new_name=${encodeURIComponent(newName)}`, {
+      method: 'POST'
+    });
+    return response.json();
+  }
+
+  async categorizeColumn(column: string, bins: number, newName?: string) {
+    await this.init();
+    let url = `${API_URL}/prepare/categorize?column=${encodeURIComponent(column)}&bins=${bins}`;
+    if (newName) url += `&new_name=${encodeURIComponent(newName)}`;
+    const response = await fetch(url, { method: 'POST' });
+    return response.json();
+  }
+
+  async checkFilter(condition: string) {
+    await this.init();
+    const response = await fetch(`${API_URL}/prepare/filter?condition=${encodeURIComponent(condition)}`, {
+      method: 'POST'
+    });
+    return response.json();
+  }
 }
 
 export const engine = new PythonEngine();

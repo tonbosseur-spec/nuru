@@ -6,12 +6,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
+import { VariableSelector, TestSelector } from './AnalysisUI';
+
 export function AssociationTests() {
   const { columns, addResult, isEngineReady } = useStore();
   const [var1, setVar1] = useState<string>('');
   const [var2, setVar2] = useState<string>('');
   const [method, setMethod] = useState<string>('chi2');
   const [isRunning, setIsRunning] = useState(false);
+
+  const OPTIONS = [
+    { 
+      id: 'chi2', 
+      label: 'Test du Chi-2', 
+      description: 'Évalue l\'indépendance entre deux variables qualitatives. Accompagné du V de Cramer pour mesurer la force de l\'association.' 
+    },
+  ];
 
   const runAnalysis = async () => {
     if (!var1 || !var2) return;
@@ -64,32 +74,40 @@ print("</div>")
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4">
-        <div>
-           <Label>Variable 1 (Categorical)</Label>
-           <Select value={var1} onValueChange={setVar1}>
-             <SelectTrigger><SelectValue placeholder="Select..."/></SelectTrigger>
-             <SelectContent>{columns.map(c => <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>)}</SelectContent>
-           </Select>
-        </div>
-        <div>
-           <Label>Variable 2 (Categorical)</Label>
-           <Select value={var2} onValueChange={setVar2}>
-             <SelectTrigger><SelectValue placeholder="Select..."/></SelectTrigger>
-             <SelectContent>{columns.map(c => <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>)}</SelectContent>
-           </Select>
-        </div>
-        <div>
-           <Label>Test</Label>
-           <Select value={method} onValueChange={setMethod}>
-             <SelectTrigger><SelectValue placeholder="Select..."/></SelectTrigger>
-             <SelectContent>
-                <SelectItem value="chi2">Chi-Square Independence Test + Cramer's V</SelectItem>
-             </SelectContent>
-           </Select>
+      <div className="space-y-6">
+        <TestSelector 
+          options={OPTIONS}
+          selected={[method]}
+          onToggle={(id) => setMethod(id)}
+          label="Test d'association"
+          allowMultiple={false}
+        />
+
+        <div className="grid grid-cols-1 gap-6">
+          <VariableSelector 
+            variables={columns}
+            selected={var1}
+            onSelect={setVar1}
+            label="Variable Qualitative 1"
+          />
+          <VariableSelector 
+            variables={columns}
+            selected={var2}
+            onSelect={setVar2}
+            label="Variable Qualitative 2"
+          />
         </div>
       </div>
-      <Button onClick={runAnalysis} className="w-full" disabled={isRunning}>Run Test</Button>
+      
+      <div className="pt-4 border-t border-slate-100">
+        <Button 
+          onClick={runAnalysis} 
+          disabled={!isEngineReady || isRunning || !var1 || !var2 || var1 === var2} 
+          className="w-full bg-indigo-600 hover:bg-indigo-700 h-11 text-sm font-semibold shadow-lg shadow-indigo-100 transition-all active:scale-[0.98]"
+        >
+          {isRunning ? 'Calcul en cours...' : 'Lancer le Test'}
+        </Button>
+      </div>
     </div>
   );
 }

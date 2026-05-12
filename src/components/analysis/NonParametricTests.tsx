@@ -6,12 +6,32 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
+import { VariableSelector, TestSelector } from './AnalysisUI';
+
 export function NonParametricTests() {
   const { columns, addResult, isEngineReady } = useStore();
   const [var1, setVar1] = useState<string>('');
   const [var2, setVar2] = useState<string>('');
   const [method, setMethod] = useState<string>('mannwhitneyu');
   const [isRunning, setIsRunning] = useState(false);
+
+  const OPTIONS = [
+    { 
+      id: 'mannwhitneyu', 
+      label: 'Mann-Whitney U', 
+      description: 'L\'alternative non paramétrique au T-test indépendant. Compare les médianes de deux groupes.' 
+    },
+    { 
+      id: 'wilcoxon', 
+      label: 'Wilcoxon Signed-Rank', 
+      description: 'L\'alternative non paramétrique au T-test apparié.' 
+    },
+    { 
+      id: 'kruskal', 
+      label: 'Kruskal-Wallis', 
+      description: 'L\'alternative non paramétrique à l\'ANOVA. Compare les médianes de 3 groupes ou plus.' 
+    },
+  ];
 
   const runAnalysis = async () => {
     if (!var1 || !var2) return;
@@ -65,34 +85,40 @@ print("</div>")
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4">
-        <div>
-           <Label>Variable (Numeric)</Label>
-           <Select value={var1} onValueChange={setVar1}>
-             <SelectTrigger><SelectValue placeholder="Select..."/></SelectTrigger>
-             <SelectContent>{columns.filter(c => c.type === 'numeric').map(c => <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>)}</SelectContent>
-           </Select>
-        </div>
-        <div>
-           <Label>Group Variable (Categorical)</Label>
-           <Select value={var2} onValueChange={setVar2}>
-             <SelectTrigger><SelectValue placeholder="Select..."/></SelectTrigger>
-             <SelectContent>{columns.map(c => <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>)}</SelectContent>
-           </Select>
-        </div>
-        <div>
-           <Label>Method</Label>
-           <Select value={method} onValueChange={setMethod}>
-             <SelectTrigger><SelectValue placeholder="Select..."/></SelectTrigger>
-             <SelectContent>
-                <SelectItem value="mannwhitneyu">Mann-Whitney U (2 groups)</SelectItem>
-                <SelectItem value="wilcoxon">Wilcoxon Signed-Rank (Paired)</SelectItem>
-                <SelectItem value="kruskal">Kruskal-Wallis (k groups)</SelectItem>
-             </SelectContent>
-           </Select>
+      <div className="space-y-6">
+        <TestSelector 
+          options={OPTIONS}
+          selected={[method]}
+          onToggle={(id) => setMethod(id)}
+          label="Méthode de test"
+          allowMultiple={false}
+        />
+
+        <div className="grid grid-cols-1 gap-6">
+          <VariableSelector 
+            variables={columns.filter(c => c.type === 'numeric')}
+            selected={var1}
+            onSelect={setVar1}
+            label="Variable Quantitative"
+          />
+          <VariableSelector 
+            variables={columns}
+            selected={var2}
+            onSelect={setVar2}
+            label={method === 'wilcoxon' ? 'Variable Quantitative 2' : 'Variable Groupe'}
+          />
         </div>
       </div>
-      <Button onClick={runAnalysis} className="w-full" disabled={isRunning}>Run Test</Button>
+      
+      <div className="pt-4 border-t border-slate-100">
+        <Button 
+          onClick={runAnalysis} 
+          disabled={!isEngineReady || isRunning || !var1 || !var2} 
+          className="w-full bg-indigo-600 hover:bg-indigo-700 h-11 text-sm font-semibold shadow-lg shadow-indigo-100 transition-all active:scale-[0.98]"
+        >
+          {isRunning ? 'Calcul en cours...' : 'Lancer le Test'}
+        </Button>
+      </div>
     </div>
   );
 }

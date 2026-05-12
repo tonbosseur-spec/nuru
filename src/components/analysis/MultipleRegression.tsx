@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
+import { VariableSelector, TestSelector } from './AnalysisUI';
+
 export function MultipleRegression() {
   const { columns, addResult, isEngineReady } = useStore();
   const [dependent, setDependent] = useState<string>('');
@@ -14,7 +16,15 @@ export function MultipleRegression() {
 
   const numericCols = columns.filter(c => c.type === 'numeric');
 
-  const toggleIndependent = (colName: string) => {
+  const OPTIONS = [
+    { 
+      id: 'ols_multiple', 
+      label: 'Régression Multiple (OLS)', 
+      description: 'Estime l\'influence conjointe de plusieurs variables explicatives sur une variable dépendante unique.' 
+    },
+  ];
+
+  const handleSelectIndependent = (colName: string) => {
     setIndependents(prev => 
       prev.includes(colName) ? prev.filter(c => c !== colName) : [...prev, colName]
     );
@@ -128,46 +138,42 @@ print("__PLOTLY_JSON_START__" + pio.to_json(fig_imp) + "__PLOTLY_JSON_END__")
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4">
-        <div>
-          <Label>Variable Dépendante (Y)</Label>
-          <Select value={dependent} onValueChange={setDependent}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner..." />
-            </SelectTrigger>
-            <SelectContent>
-              {numericCols.map(c => <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div>
-          <Label className="block mb-2">Variables Explicatives (X)</Label>
-          <div className="flex flex-wrap gap-2 mb-2">
-             {independents.map(ind => (
-               <span key={ind} className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold select-none bg-slate-100 text-slate-800 cursor-pointer hover:bg-slate-200" onClick={() => toggleIndependent(ind)}>
-                 {ind} ✕
-               </span>
-             ))}
-          </div>
-          <div className="border rounded-md p-2 h-40 overflow-y-auto space-y-1">
-             {numericCols.filter(c => c.name !== dependent).map(c => (
-               <div key={c.name} className="flex items-center space-x-2">
-                 <input 
-                   type="checkbox" 
-                   id={`chk-${c.name}`} 
-                   checked={independents.includes(c.name)}
-                   onChange={() => toggleIndependent(c.name)}
-                 />
-                 <label htmlFor={`chk-${c.name}`} className="text-sm cursor-pointer select-none flex-1 opacity-70 hover:opacity-100">{c.name}</label>
-               </div>
-             ))}
-          </div>
+      <div className="space-y-6">
+        <TestSelector 
+          options={OPTIONS}
+          selected={['ols_multiple']}
+          onToggle={() => {}}
+          label="Modèle d'analyse"
+          allowMultiple={false}
+        />
+
+        <div className="grid grid-cols-1 gap-6">
+          <VariableSelector 
+            variables={numericCols}
+            selected={dependent}
+            onSelect={setDependent}
+            label="Variable Dépendante (Y)"
+          />
+          
+          <VariableSelector 
+            variables={numericCols.filter(c => c.name !== dependent)}
+            selected={independents}
+            onSelect={handleSelectIndependent}
+            label="Variables Explicatives (X)"
+            multi
+          />
         </div>
       </div>
-      <Button onClick={runAnalysis} className="w-full" disabled={isRunning || !dependent || independents.length === 0}>
-        {isRunning ? 'Calcul en cours...' : 'Lancer la Régression Multiple'}
-      </Button>
+      
+      <div className="pt-4 border-t border-slate-100">
+        <Button 
+          onClick={runAnalysis} 
+          disabled={!isEngineReady || isRunning || !dependent || independents.length === 0} 
+          className="w-full bg-indigo-600 hover:bg-indigo-700 h-11 text-sm font-semibold shadow-lg shadow-indigo-100 transition-all active:scale-[0.98]"
+        >
+          {isRunning ? 'Calcul en cours...' : 'Lancer la Régression Multiple'}
+        </Button>
+      </div>
     </div>
   );
 }

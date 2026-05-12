@@ -59,10 +59,12 @@ interface AppState {
   sidebarVisible: boolean;
   consoleVisible: boolean;
   activeTab: string;
+  globalFilter: string | null;
   
   setEngineReady: (ready: boolean, status: string) => void;
   setDataset: (name: string, columns: ColumnInfo[], rowCount: number, csvData: string) => void;
   setActiveTab: (tab: string) => void;
+  setGlobalFilter: (filter: string | null) => void;
   addResult: (result: ResultItem) => void;
   clearResults: () => void;
   toggleSidebar: () => void;
@@ -116,6 +118,7 @@ export const useStore = create<AppState>((set, get) => ({
   sidebarVisible: true,
   consoleVisible: true,
   activeTab: 'fichier',
+  globalFilter: null,
   
   setEngineReady: (isEngineReady, engineStatus) => set({ isEngineReady, engineStatus }),
   
@@ -125,6 +128,11 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   setActiveTab: (activeTab) => set({ activeTab }),
+
+  setGlobalFilter: (globalFilter) => {
+    set({ globalFilter });
+    get().saveCurrentWorkspace();
+  },
   
   addResult: (result) => {
     set((state) => ({ 

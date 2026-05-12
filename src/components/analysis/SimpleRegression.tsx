@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
+import { VariableSelector, TestSelector } from './AnalysisUI';
+
 export function SimpleRegression() {
   const { columns, addResult, isEngineReady } = useStore();
   const [dependent, setDependent] = useState<string>('');
@@ -13,6 +15,14 @@ export function SimpleRegression() {
   const [isRunning, setIsRunning] = useState(false);
 
   const numericCols = columns.filter(c => c.type === 'numeric');
+
+  const OPTIONS = [
+    { 
+      id: 'ols', 
+      label: 'Moindres Carrés Ordinaires (OLS)', 
+      description: 'Estime les paramètres d\'une relation linéaire entre une variable dépendante et une variable explicative.' 
+    },
+  ];
 
   const runAnalysis = async () => {
     if (!dependent || !independent) return;
@@ -99,33 +109,40 @@ print("__PLOTLY_JSON_START__" + pio.to_json(fig_qq) + "__PLOTLY_JSON_END__")
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4">
-        <div>
-          <Label>Variable Dépendante (Y)</Label>
-          <Select value={dependent} onValueChange={setDependent}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner..." />
-            </SelectTrigger>
-            <SelectContent>
-              {numericCols.map(c => <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label>Variable Explicative (X)</Label>
-          <Select value={independent} onValueChange={setIndependent}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner..." />
-            </SelectTrigger>
-            <SelectContent>
-              {numericCols.map(c => <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
+      <div className="space-y-6">
+        <TestSelector 
+          options={OPTIONS}
+          selected={['ols']}
+          onToggle={() => {}}
+          label="Modèle de régression"
+          allowMultiple={false}
+        />
+
+        <div className="grid grid-cols-1 gap-6">
+          <VariableSelector 
+            variables={numericCols}
+            selected={dependent}
+            onSelect={setDependent}
+            label="Variable Dépendante (Y)"
+          />
+          <VariableSelector 
+            variables={numericCols}
+            selected={independent}
+            onSelect={setIndependent}
+            label="Variable Explicative (X)"
+          />
         </div>
       </div>
-      <Button onClick={runAnalysis} className="w-full" disabled={isRunning || !dependent || !independent}>
-        {isRunning ? 'Calcul en cours...' : 'Lancer la Régression Simple'}
-      </Button>
+      
+      <div className="pt-4 border-t border-slate-100">
+        <Button 
+          onClick={runAnalysis} 
+          disabled={!isEngineReady || isRunning || !dependent || !independent} 
+          className="w-full bg-indigo-600 hover:bg-indigo-700 h-11 text-sm font-semibold shadow-lg shadow-indigo-100 transition-all active:scale-[0.98]"
+        >
+          {isRunning ? 'Calcul en cours...' : 'Lancer la Régression Simple'}
+        </Button>
+      </div>
     </div>
   );
 }

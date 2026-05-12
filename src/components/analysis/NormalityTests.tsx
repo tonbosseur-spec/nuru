@@ -5,20 +5,42 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 
+import { VariableSelector, TestSelector } from './AnalysisUI';
+
 export function NormalityTests() {
   const { columns, addResult, isEngineReady } = useStore();
   const [selectedVar, setSelectedVar] = useState<string>('');
-  const [selectedTests, setSelectedTests] = useState<string[]>(['shapiro', 'ks']);
+  const [selectedTests, setSelectedTests] = useState<string[]>(['shapiro']);
   const [isRunning, setIsRunning] = useState(false);
 
   const numericCols = columns.filter(c => c.type === 'numeric');
 
   const TESTS = [
-    { id: 'shapiro', label: 'Shapiro-Wilk' },
-    { id: 'ks', label: 'Kolmogorov-Smirnov' },
-    { id: 'anderson', label: 'Anderson-Darling' },
-    { id: 'jarque_bera', label: 'Jarque-Bera' },
-    { id: 'dagostino', label: "D'Agostino-Pearson" },
+    { 
+      id: 'shapiro', 
+      label: 'Shapiro-Wilk',
+      description: 'Le test le plus puissant pour les petits échantillons (n < 50). H0: La variable suit une loi normale.'
+    },
+    { 
+      id: 'ks', 
+      label: 'Kolmogorov-Smirnov',
+      description: 'Compare la distribution observée à une loi normale théorique. Préférable pour les grands échantillons.'
+    },
+    { 
+      id: 'anderson', 
+      label: 'Anderson-Darling',
+      description: 'Donne plus de poids aux queues de distribution que le test de Kolmogorov-Smirnov.'
+    },
+    { 
+      id: 'jarque_bera', 
+      label: 'Jarque-Bera',
+      description: 'Basé sur l\'asymétrie (skewness) et l\'aplatissement (kurtosis). Efficace pour les grands échantillons.'
+    },
+    { 
+      id: 'dagostino', 
+      label: "D'Agostino-Pearson",
+      description: 'Combine l\'asymétrie et l\'aplatissement pour évaluer l\'écart à la normalité.'
+    },
   ];
 
   const toggleTest = (id: string) => {
@@ -108,45 +130,29 @@ if px:
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4">
-        <div>
-          <label className="text-sm font-medium text-slate-700 mb-1.5 block">Variable</label>
-          <Select value={selectedVar} onValueChange={setSelectedVar}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a numeric variable" />
-            </SelectTrigger>
-            <SelectContent>
-              {numericCols.map(c => (
-                <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <div className="space-y-6">
+        <VariableSelector 
+          variables={numericCols}
+          selected={selectedVar}
+          onSelect={setSelectedVar}
+          label="Variable Numérique"
+        />
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700 block">Tests to run</label>
-          <div className="grid grid-cols-1 gap-2">
-            {TESTS.map(test => (
-              <div 
-                key={test.id}
-                onClick={() => toggleTest(test.id)}
-                className={`px-3 py-2 rounded-lg border text-sm cursor-pointer transition-colors flex justify-between items-center ${
-                  selectedTests.includes(test.id) 
-                    ? 'bg-blue-50 border-blue-200 text-blue-700' 
-                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                <span>{test.label}</span>
-                {selectedTests.includes(test.id) && <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />}
-              </div>
-            ))}
-          </div>
-        </div>
+        <TestSelector 
+          options={TESTS}
+          selected={selectedTests}
+          onToggle={toggleTest}
+          label="Tests de Normalité"
+        />
       </div>
       
-      <div className="pt-4 border-t">
-         <Button onClick={runAnalysis} disabled={!isEngineReady || isRunning || !selectedVar || selectedTests.length === 0} className="w-full bg-blue-600 hover:bg-blue-700">
-           {isRunning ? 'Computing...' : 'Run Normality Tests'}
+      <div className="pt-4 border-t border-slate-100">
+         <Button 
+           onClick={runAnalysis} 
+           disabled={!isEngineReady || isRunning || !selectedVar || selectedTests.length === 0} 
+           className="w-full bg-indigo-600 hover:bg-indigo-700 h-11 text-sm font-semibold shadow-lg shadow-indigo-100 transition-all active:scale-[0.98]"
+         >
+           {isRunning ? 'Analyse en cours...' : 'Lancer les Tests'}
          </Button>
       </div>
     </div>

@@ -10,8 +10,19 @@ API_PORT = 8000
 API_HOST = "127.0.0.1"
 
 def start_backend():
-    """Lance le serveur FastAPI en arrière-plan"""
-    uvicorn.run(app, host=API_HOST, port=API_PORT, log_level="error")
+    """Lance le serveur FastAPI en arrière-plan. Gère l'erreur de port déjà utilisé."""
+    try:
+        uvicorn.run(app, host=API_HOST, port=API_PORT, log_level="error")
+    except Exception as e:
+        error_str = str(e).lower()
+        if "10048" in error_str or "already in use" in error_str:
+            print(f"ERREUR CRITIQUE : Le port {API_PORT} est déjà utilisé.")
+            # On peut essayer d'informer l'utilisateur via un fichier log ou autre
+            with open("nuru_port_error.txt", "w", encoding="utf-8") as f:
+                f.write(f"Erreur : Le port {API_PORT} est occupé par une autre application.\n")
+                f.write("Veuillez fermer les autres instances de Nuru Analytics.")
+        else:
+            print(f"Erreur backend : {e}")
 
 def get_entrypoint():
     """Détermine le chemin du frontend (dev ou prod)"""

@@ -7,6 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 
+import { VariableSelector } from './AnalysisUI';
+import { Checkbox } from '@/components/ui/checkbox';
+
 export function DescriptiveStats() {
   const { columns, addResult, isEngineReady } = useStore();
   const [selectedVar, setSelectedVar] = useState<string>('');
@@ -166,71 +169,107 @@ print("__PLOTLY_JSON_START__" + pio.to_json(fig_pie) + "__PLOTLY_JSON_END__")
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4">
-        <div>
-          <Label className="mb-1.5 block">Variable</Label>
-          <Select value={selectedVar} onValueChange={setSelectedVar}>
-            <SelectTrigger><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
-            <SelectContent>
-              {columns.map(c => (
-                <SelectItem key={c.name} value={c.name}>{c.name} ({c.type})</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <div className="space-y-6">
+        <VariableSelector 
+          variables={columns}
+          selected={selectedVar}
+          onSelect={setSelectedVar}
+          label="Variable à analyser"
+        />
 
         {selectedVar && (
-          <div className="p-4 bg-slate-50 border rounded-lg space-y-4">
-            <h4 className="font-semibold text-sm">Options d'analyse</h4>
-            <div className="flex items-center justify-between">
-              <Label>Statistiques descriptives</Label>
-              <input type="checkbox" checked={showStats} onChange={e => setShowStats(e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600" />
-            </div>
+          <div className="p-5 bg-slate-50/50 border border-slate-200 rounded-2xl space-y-5 animate-in fade-in zoom-in-95 duration-300 shadow-inner">
+            <h4 className="text-xs font-bold font-sans uppercase tracking-[0.1em] text-slate-400">Options d'analyse</h4>
             
-            {isNum ? (
-              <>
-                <div className="flex items-center justify-between">
-                  <Label>Histogramme + Courbe</Label>
-                  <input type="checkbox" checked={showHist} onChange={e => setShowHist(e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600" />
-                </div>
-                {showHist && (
-                  <div className="pl-4 flex items-center space-x-2">
-                    <Label className="text-xs">Classes:</Label>
-                    <Input type="number" className="w-20 h-7 text-xs" value={histBins} onChange={e => setHistBins(e.target.value)} />
+            <div className="grid grid-cols-1 gap-3">
+              <div 
+                className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
+                onClick={() => setShowStats(!showStats)}
+              >
+                <Label className="text-sm font-medium text-slate-700 cursor-pointer flex-1">Statistiques descriptives</Label>
+                <Checkbox checked={showStats} onCheckedChange={() => setShowStats(!showStats)} />
+              </div>
+              
+              {isNum ? (
+                <>
+                  <div className="space-y-3">
+                    <div 
+                      className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
+                      onClick={() => setShowHist(!showHist)}
+                    >
+                      <Label className="text-sm font-medium text-slate-700 cursor-pointer flex-1">Histogramme + Courbe</Label>
+                      <Checkbox checked={showHist} onCheckedChange={() => setShowHist(!showHist)} />
+                    </div>
+                    {showHist && (
+                      <div className="pl-6 flex items-center space-x-3 py-1 animate-in slide-in-from-left-2 duration-200">
+                        <Label className="text-[11px] text-slate-500 font-semibold uppercase">Classes (bins):</Label>
+                        <Input 
+                          type="number" 
+                          className="w-20 h-8 text-xs rounded-lg border-slate-200 bg-white" 
+                          value={histBins} 
+                          onChange={e => setHistBins(e.target.value)} 
+                        />
+                      </div>
+                    )}
                   </div>
-                )}
-                <div className="flex items-center justify-between">
-                   <Label>Boxplot (Moustaches)</Label>
-                   <input type="checkbox" checked={showBoxplot} onChange={e => setShowBoxplot(e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600" />
-                </div>
-                <div className="flex items-center justify-between">
-                   <Label>Graphe de Densité</Label>
-                   <input type="checkbox" checked={showDensity} onChange={e => setShowDensity(e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600" />
-                </div>
-                <div className="flex items-center justify-between">
-                   <Label>QQ Plot (Normalité)</Label>
-                   <input type="checkbox" checked={showQQ} onChange={e => setShowQQ(e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600" />
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="flex items-center justify-between">
-                  <Label>Diagramme en barres</Label>
-                  <input type="checkbox" checked={showBar} onChange={e => setShowBar(e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600" />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label>Diagramme Circulaire</Label>
-                  <input type="checkbox" checked={showPie} onChange={e => setShowPie(e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600" />
-                </div>
-              </>
-            )}
+
+                  <div 
+                    className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
+                    onClick={() => setShowBoxplot(!showBoxplot)}
+                  >
+                    <Label className="text-sm font-medium text-slate-700 cursor-pointer flex-1">Boxplot (Moustaches)</Label>
+                    <Checkbox checked={showBoxplot} onCheckedChange={() => setShowBoxplot(!showBoxplot)} />
+                  </div>
+
+                  <div 
+                    className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
+                    onClick={() => setShowDensity(!showDensity)}
+                  >
+                    <Label className="text-sm font-medium text-slate-700 cursor-pointer flex-1">Graphe de Densité</Label>
+                    <Checkbox checked={showDensity} onCheckedChange={() => setShowDensity(!showDensity)} />
+                  </div>
+
+                  <div 
+                    className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
+                    onClick={() => setShowQQ(!showQQ)}
+                  >
+                    <Label className="text-sm font-medium text-slate-700 cursor-pointer flex-1">QQ Plot (Normalité)</Label>
+                    <Checkbox checked={showQQ} onCheckedChange={() => setShowQQ(!showQQ)} />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div 
+                    className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
+                    onClick={() => setShowBar(!showBar)}
+                  >
+                    <Label className="text-sm font-medium text-slate-700 cursor-pointer flex-1">Diagramme en barres</Label>
+                    <Checkbox checked={showBar} onCheckedChange={() => setShowBar(!showBar)} />
+                  </div>
+
+                  <div 
+                    className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
+                    onClick={() => setShowPie(!showPie)}
+                  >
+                    <Label className="text-sm font-medium text-slate-700 cursor-pointer flex-1">Diagramme Circulaire</Label>
+                    <Checkbox checked={showPie} onCheckedChange={() => setShowPie(!showPie)} />
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         )}
       </div>
       
-      <Button onClick={runAnalysis} disabled={!isEngineReady || isRunning || !selectedVar} className="w-full">
-        {isRunning ? 'Calcul...' : 'Lancer l\'analyse'}
-      </Button>
+      <div className="pt-4 border-t border-slate-100">
+        <Button 
+          onClick={runAnalysis} 
+          disabled={!isEngineReady || isRunning || !selectedVar} 
+          className="w-full bg-indigo-600 hover:bg-indigo-700 h-11 text-sm font-semibold shadow-lg shadow-indigo-100 transition-all active:scale-[0.98]"
+        >
+          {isRunning ? 'Calcul en cours...' : 'Lancer l\'analyse'}
+        </Button>
+      </div>
     </div>
   );
 }

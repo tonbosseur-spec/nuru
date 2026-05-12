@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 
+import { VariableSelector, TestSelector } from './AnalysisUI';
+
 export function ParametricTests() {
   const { columns, addResult, isEngineReady } = useStore();
   const [testType, setTestType] = useState<string>('ttest_1samp');
@@ -17,6 +19,29 @@ export function ParametricTests() {
 
   const numericCols = columns.filter(c => c.type === 'numeric');
   const catCols = columns.filter(c => c.type === 'categorical');
+
+  const OPTIONS = [
+    { 
+      id: 'ttest_1samp', 
+      label: 'T-test un échantillon', 
+      description: 'Compare la moyenne d\'un groupe à une valeur théorique connue.' 
+    },
+    { 
+      id: 'ttest_ind', 
+      label: 'T-test indépendant', 
+      description: 'Compare les moyennes de deux groupes distincts (ex: Hommes vs Femmes).' 
+    },
+    { 
+      id: 'ttest_rel', 
+      label: 'T-test apparié', 
+      description: 'Compare les moyennes de deux mesures sur les mêmes sujets (ex: Avant vs Après).' 
+    },
+    { 
+      id: 'anova', 
+      label: 'ANOVA à un facteur', 
+      description: 'Compare les moyennes de trois groupes ou plus.' 
+    },
+  ];
 
   const runAnalysis = async () => {
     if (!var1) return;
@@ -195,60 +220,55 @@ print("__PLOTLY_JSON_START__" + pio.to_json(fig_mean) + "__PLOTLY_JSON_END__")
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4">
-        <div>
-          <Label className="mb-1.5 block">Test Paramétrique</Label>
-          <Select value={testType} onValueChange={setTestType}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ttest_1samp">T-test un échantillon</SelectItem>
-              <SelectItem value="ttest_ind">T-test indépendant</SelectItem>
-              <SelectItem value="ttest_rel">T-test apparié</SelectItem>
-              <SelectItem value="anova">ANOVA à un facteur</SelectItem>
-            </SelectContent>
-          </Select>
+      <div className="space-y-6">
+        <TestSelector 
+          options={OPTIONS}
+          selected={[testType]}
+          onToggle={(id) => setTestType(id)}
+          label="Type de test"
+          allowMultiple={false}
+        />
+
+        <div className="grid grid-cols-1 gap-6">
+          <VariableSelector 
+            variables={numericCols}
+            selected={var1}
+            onSelect={setVar1}
+            label={`Variable Quantitative ${testType === 'ttest_rel' ? '1' : ''}`}
+          />
+
+          {testType === 'ttest_1samp' && (
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-400 block">Moyenne théorique</label>
+              <Input 
+                type="number" 
+                value={mu} 
+                onChange={e => setMu(e.target.value)}
+                className="rounded-xl border-slate-200 h-11"
+              />
+            </div>
+          )}
+
+          {testType !== 'ttest_1samp' && (
+            <VariableSelector 
+              variables={testType === 'ttest_rel' ? numericCols : columns}
+              selected={var2}
+              onSelect={setVar2}
+              label={testType === 'ttest_rel' ? 'Variable Quantitative 2' : 'Variable Groupe (Facteur)'}
+            />
+          )}
         </div>
-
-        <div>
-           <Label className="mb-1.5 block">Variable Quantitative {testType === 'ttest_rel' && '1'}</Label>
-          <Select value={var1} onValueChange={setVar1}>
-            <SelectTrigger><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
-            <SelectContent>
-              {numericCols.map(c => <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {testType === 'ttest_1samp' && (
-          <div>
-            <Label className="mb-1.5 block">Moyenne théorique</Label>
-            <Input type="number" value={mu} onChange={e => setMu(e.target.value)} />
-          </div>
-        )}
-
-        {testType !== 'ttest_1samp' && (
-          <div>
-            <Label className="mb-1.5 block">
-              {testType === 'ttest_rel' ? 'Variable Quantitative 2' : 'Variable Groupe (Facteur)'}
-            </Label>
-            <Select value={var2} onValueChange={setVar2}>
-               <SelectTrigger><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
-               <SelectContent>
-                 {testType === 'ttest_rel' 
-                    ? numericCols.map(c => <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>)
-                    : columns.map(c => <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>)
-                 }
-               </SelectContent>
-            </Select>
-          </div>
-        )}
       </div>
       
-      <Button onClick={runAnalysis} disabled={!isEngineReady || isRunning || !var1} className="w-full">
-        {isRunning ? 'Calcul...' : 'Lancer le Test'}
-      </Button>
+      <div className="pt-4 border-t border-slate-100">
+         <Button 
+           onClick={runAnalysis} 
+           disabled={!isEngineReady || isRunning || !var1 || (testType !== 'ttest_1samp' && !var2)} 
+           className="w-full bg-indigo-600 hover:bg-indigo-700 h-11 text-sm font-semibold shadow-lg shadow-indigo-100 transition-all active:scale-[0.98]"
+         >
+           {isRunning ? 'Calcul en cours...' : 'Lancer le Test'}
+         </Button>
+      </div>
     </div>
   );
 }

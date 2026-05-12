@@ -8,8 +8,8 @@ export function DescriptiveArea() {
   return (
     <AnalysisContainer
       categories={[
-        { id: '1.1', label: '1.1 Univariées', icon: BarChart3, color: 'text-blue-500', component: <DescriptiveStats /> },
-        { id: '1.2', label: '1.2 Bivariées', icon: Binary, color: 'text-green-500', component: <BivariateAnalysis /> },
+        { id: 'univar', label: 'Univariées', icon: BarChart3, color: 'text-blue-500', component: <DescriptiveStats /> },
+        { id: 'bivar', label: 'Bivariées', icon: Binary, color: 'text-green-500', component: <BivariateAnalysis /> },
       ]}
     />
   );

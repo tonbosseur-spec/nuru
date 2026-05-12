@@ -11,6 +11,8 @@ import { toast } from 'sonner';
 import { ResultsArea } from '../ResultsArea';
 import { HelpCircle } from 'lucide-react';
 
+import { VariableSelector } from './AnalysisUI';
+
 export function Charts() {
   const { columns, addResult, isEngineReady } = useStore();
   const [selectedVars, setSelectedVars] = useState<string[]>([]);
@@ -26,10 +28,12 @@ export function Charts() {
   const [trendline, setTrendline] = useState('none');
 
   const toggleVar = (name: string) => {
-    setSelectedVars(prev => 
-      prev.includes(name) ? prev.filter(v => v !== name) : [...prev, name]
-    );
-    setSelectedChart(null); // Reset chart selection when variables change
+    setSelectedVars(prev => {
+      const isSelected = prev.includes(name);
+      const newSelection = isSelected ? prev.filter(v => v !== name) : [...prev, name];
+      return newSelection;
+    });
+    setSelectedChart(null);
   };
 
   const selectedColInfos = selectedVars.map(v => columns.find(c => c.name === v)!).filter(Boolean);
@@ -208,35 +212,13 @@ export function Charts() {
         
         {/* Variables Selection */}
         <div className="flex-1 flex flex-col bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm min-h-[50%]">
-          <div className="p-2.5 bg-slate-50 border-b font-bold text-[10px] uppercase tracking-wider text-slate-400">
-            Variables ({selectedVars.length})
-          </div>
-          <ScrollArea className="flex-1 p-3">
-            <div className="space-y-3">
-               <div>
-                 <Label className="text-xs text-slate-500 uppercase font-semibold mb-2 block">Numériques</Label>
-                 <div className="space-y-1.5">
-                 {columns.filter(c => c.type === 'numeric').map(c => (
-                   <div key={c.name} className="flex items-center space-x-2">
-                     <Checkbox id={`var-${c.name}`} checked={selectedVars.includes(c.name)} onCheckedChange={() => toggleVar(c.name)} />
-                     <Label htmlFor={`var-${c.name}`} className="text-sm font-normal cursor-pointer leading-tight truncate">{c.name}</Label>
-                   </div>
-                 ))}
-                 </div>
-               </div>
-               <div>
-                 <Label className="text-xs text-slate-500 uppercase font-semibold mb-2 block border-t pt-3 mt-3">Catégorielles</Label>
-                 <div className="space-y-1.5">
-                 {columns.filter(c => c.type === 'categorical').map(c => (
-                   <div key={c.name} className="flex items-center space-x-2">
-                     <Checkbox id={`var-${c.name}`} checked={selectedVars.includes(c.name)} onCheckedChange={() => toggleVar(c.name)} />
-                     <Label htmlFor={`var-${c.name}`} className="text-sm font-normal cursor-pointer leading-tight truncate">{c.name}</Label>
-                   </div>
-                 ))}
-                 </div>
-               </div>
-            </div>
-          </ScrollArea>
+          <VariableSelector 
+            variables={columns}
+            selected={selectedVars}
+            onSelect={toggleVar}
+            label="Variables d'intérêt"
+            multi
+          />
         </div>
 
         {/* Proposals */}

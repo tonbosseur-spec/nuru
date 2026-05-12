@@ -10,10 +10,10 @@ export function TestsArea() {
   return (
     <AnalysisContainer
       categories={[
-        { id: '2.1', label: '2.1 Normalité', icon: ShieldCheck, color: 'text-emerald-500', component: <NormalityTests /> },
-        { id: '2.2', label: '2.2 Paramétriques', icon: Activity, color: 'text-rose-500', component: <ParametricTests /> },
-        { id: '2.3', label: '2.3 Non Paramétriques', icon: GitMerge, color: 'text-amber-500', component: <NonParametricTests /> },
-        { id: '2.4', label: '2.4 Association', icon: Binary, color: 'text-cyan-500', component: <AssociationTests /> },
+        { id: 'normality', label: 'Normalité', icon: ShieldCheck, color: 'text-emerald-500', component: <NormalityTests /> },
+        { id: 'parametric', label: 'Paramétriques', icon: Activity, color: 'text-rose-500', component: <ParametricTests /> },
+        { id: 'nonparametric', label: 'Non Paramétriques', icon: GitMerge, color: 'text-amber-500', component: <NonParametricTests /> },
+        { id: 'association', label: 'Association', icon: Binary, color: 'text-cyan-500', component: <AssociationTests /> },
       ]}
     />
   );
