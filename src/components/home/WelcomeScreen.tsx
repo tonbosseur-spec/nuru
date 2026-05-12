@@ -70,7 +70,7 @@ const generateTestExcel = () => {
 };
 
 export function WelcomeScreen() {
-  const { user, createNewWorkspace, loadWorkspaceData, logout, isEngineReady, engineStatus, setDataset } = useStore();
+  const { user, createNewWorkspace, loadWorkspaceData, logout, isEngineReady, engineStatus, setDataset, importWorkspaceFromFile } = useStore();
   const [summaries, setSummaries] = useState<WorkspaceSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -226,7 +226,7 @@ export function WelcomeScreen() {
                 variant="outline" 
                 size="lg"
                 className="h-14 px-6 bg-white hover:bg-indigo-50 border-slate-200 rounded-xl transition-all font-semibold"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={importWorkspaceFromFile}
               >
                 <UploadCloud className="w-5 h-5 mr-3 text-indigo-500" /> Importer .nra
               </Button>

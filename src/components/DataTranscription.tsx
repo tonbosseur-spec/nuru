@@ -29,7 +29,7 @@ export function DataTranscription() {
     setTranscriptionMode 
   } = useTranscriptionStore();
   
-  const { setDataset } = useStore();
+  const { setDataset, setActiveTab } = useStore();
   
   const [step, setStep] = useState<'variables' | 'entry'>('variables');
   
@@ -86,7 +86,11 @@ export function DataTranscription() {
     const rows = data.map(row => 
       variables.map(v => {
         const val = row[v.id];
-        return val === undefined || val === null ? '' : `"${val}"`;
+        if (val === undefined || val === null || val === '') return '';
+        if (v.type === 'numeric') return val;
+        // Escape quotes and wrap in quotes for categorical
+        const escaped = String(val).replace(/"/g, '""');
+        return `"${escaped}"`;
       }).join(',')
     ).join('\n');
     
@@ -99,6 +103,7 @@ export function DataTranscription() {
       } else {
         setDataset("Dataset_Saisi.csv", res.columns, res.rows, csvContent);
         setTranscriptionMode(false);
+        setActiveTab('donnees');
         toast.success("Dataset prêt pour l'analyse !");
       }
     } catch (err: any) {

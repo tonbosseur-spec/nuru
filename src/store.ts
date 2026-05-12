@@ -58,9 +58,11 @@ interface AppState {
   
   sidebarVisible: boolean;
   consoleVisible: boolean;
+  activeTab: string;
   
   setEngineReady: (ready: boolean, status: string) => void;
   setDataset: (name: string, columns: ColumnInfo[], rowCount: number, csvData: string) => void;
+  setActiveTab: (tab: string) => void;
   addResult: (result: ResultItem) => void;
   clearResults: () => void;
   toggleSidebar: () => void;
@@ -72,9 +74,18 @@ interface AppState {
   updateWorkspaceName: (name: string) => void;
   saveCurrentWorkspace: () => Promise<void>;
   closeWorkspace: () => void;
+  exportWorkspaceAsFile: () => Promise<void>;
+  importWorkspaceFromFile: () => Promise<void>;
 }
 
+const isDesktop = () => {
+  return typeof (window as any).pywebview !== 'undefined';
+};
+
 const getStoredUser = () => {
+  if (isDesktop()) {
+    return { firstName: 'Utilisateur', lastName: 'Local' };
+  }
   const stored = localStorage.getItem('nuru_analytics_user');
   return stored ? JSON.parse(stored) : null;
 };
@@ -104,6 +115,7 @@ export const useStore = create<AppState>((set, get) => ({
   
   sidebarVisible: true,
   consoleVisible: true,
+  activeTab: 'fichier',
   
   setEngineReady: (isEngineReady, engineStatus) => set({ isEngineReady, engineStatus }),
   
@@ -111,6 +123,8 @@ export const useStore = create<AppState>((set, get) => ({
     set({ datasetName, columns, rowCount, csvData });
     get().saveCurrentWorkspace();
   },
+
+  setActiveTab: (activeTab) => set({ activeTab }),
   
   addResult: (result) => {
     set((state) => ({ 
@@ -196,6 +210,83 @@ export const useStore = create<AppState>((set, get) => ({
       results: [],
       codeHistory: []
     });
+  },
+
+  exportWorkspaceAsFile: async () => {
+    const state = get();
+    if (!state.currentWorkspaceId) return;
+
+    const data: WorkspaceData = {
+      id: state.currentWorkspaceId,
+      name: state.workspaceName,
+      datasetName: state.datasetName,
+      csvData: state.csvData,
+      columns: state.columns,
+      rowCount: state.rowCount,
+      results: state.results,
+      codeHistory: state.codeHistory
+    };
+
+    const content = JSON.stringify(data, null, 2);
+    const filename = `${state.workspaceName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.nra`;
+
+    if (isDesktop()) {
+      // Use native dialog
+      const res = await (window as any).pywebview.api.save_file_dialog(content, filename);
+      if (res.success) {
+        console.log("Saved to", res.path);
+      }
+    } else {
+      // Browser download fallback
+      const blob = new Blob([content], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  },
+
+  importWorkspaceFromFile: async () => {
+    if (isDesktop()) {
+      const res = await (window as any).pywebview.api.open_file_dialog();
+      if (res.success) {
+        try {
+          const data = JSON.parse(res.content);
+          get().loadWorkspaceData(data);
+          // Also load dataset into engine if present
+          if (data.csvData) {
+            const { engine } = await import('@/src/lib/pythonEngine');
+            await engine.loadData(data.csvData);
+          }
+        } catch (err) {
+          console.error("Invalid file format", err);
+        }
+      }
+    } else {
+      // Browser input fallback
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.nra';
+      input.onchange = async (e: any) => {
+        const file = e.target.files[0];
+        if (file) {
+          const text = await file.text();
+          try {
+            const data = JSON.parse(text);
+            get().loadWorkspaceData(data);
+            if (data.csvData) {
+              const { engine } = await import('@/src/lib/pythonEngine');
+              await engine.loadData(data.csvData);
+            }
+          } catch (err) {
+            console.error("Invalid file format", err);
+          }
+        }
+      };
+      input.click();
+    }
   }
 }));
 

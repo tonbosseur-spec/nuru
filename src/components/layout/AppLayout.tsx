@@ -24,10 +24,12 @@ export function AppLayout() {
     datasetName, 
     workspaceName,
     updateWorkspaceName,
-    closeWorkspace
+    closeWorkspace,
+    activeTab,
+    setActiveTab,
+    exportWorkspaceAsFile
   } = useStore();
   const { isTranscriptionMode } = useTranscriptionStore();
-  const [activeTab, setActiveTab] = useState('fichier');
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState('');
 
@@ -113,6 +115,16 @@ export function AppLayout() {
           )}
         </div>
         <div className="flex items-center space-x-3 text-sm">
+           <Button 
+             variant="outline" 
+             size="sm" 
+             onClick={exportWorkspaceAsFile}
+             className="hidden md:flex items-center text-slate-600 border-slate-200 hover:bg-slate-50 mr-2"
+           >
+             <Save className="w-4 h-4 mr-2" />
+             Enregistrer .nra
+           </Button>
+
            <div className="flex items-center">
              <div className={`w-2.5 h-2.5 rounded-full mr-2 ${isEngineReady ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'}`}></div>
              <span className="text-slate-600 hidden sm:inline">{engineStatus}</span>

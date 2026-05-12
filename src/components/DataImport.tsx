@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 
 export function DataImport() {
-  const { setDataset, isEngineReady, engineStatus } = useStore();
+  const { setDataset, isEngineReady, engineStatus, setActiveTab } = useStore();
   const { setTranscriptionMode } = useTranscriptionStore();
   const [isReading, setIsReading] = useState(false);
 
@@ -36,6 +36,7 @@ export function DataImport() {
         toast.error('Failed to load data: ' + res.error);
       } else {
         setDataset(file.name, res.columns, res.rows, res.csv);
+        setActiveTab('donnees');
         toast.success(`Loaded ${file.name} (${res.rows} rows)`);
       }
     } catch (err: any) {

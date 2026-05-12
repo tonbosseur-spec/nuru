@@ -29,21 +29,38 @@ async def health():
 @app.post("/load")
 async def load_data(file: UploadFile = File(...)):
     global current_df
+    print(f"Chargement du fichier : {file.filename}")
     contents = await file.read()
     try:
-        if file.filename.endswith('.csv'):
+        filename = file.filename.lower()
+        if filename.endswith('.csv'):
             current_df = pd.read_csv(io.BytesIO(contents))
-        elif file.filename.endswith(('.xls', '.xlsx')):
+        elif filename.endswith(('.xls', '.xlsx')):
             current_df = pd.read_excel(io.BytesIO(contents))
         else:
+            print(f"Format non supporté : {file.filename}")
             raise HTTPException(status_code=400, detail="Format non supporté")
         
+        # Préparation des infos de colonnes
+        cols_info = []
+        for col in current_df.columns:
+            dtype = current_df[col].dtype
+            col_type = "numeric" if np.issubdtype(dtype, np.number) else "categorical"
+            missing = int(current_df[col].isna().sum())
+            cols_info.append({
+                "name": str(col),
+                "type": col_type,
+                "missing": missing
+            })
+
+        print(f"Succès : {len(current_df)} lignes chargées, {len(cols_info)} colonnes")
         return {
-            "columns": current_df.columns.tolist(),
+            "columns": cols_info,
             "rows": len(current_df),
             "preview": current_df.head(10).to_dict(orient='records')
         }
     except Exception as e:
+        print(f"Erreur lors du chargement : {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/analyze/descriptive")
@@ -81,9 +98,24 @@ async def execute_code(payload: dict):
         # On injecte le dataframe actuel dans le namespace
         namespace = {"df": current_df, "pd": pd, "np": np, "stats": stats, "plt": None}
         exec(code, namespace)
-        return {"output": "Exécuté avec succès", "results": "OK"}
+        
+        # On récupère last_result s'il existe
+        result = namespace.get("last_result")
+        
+        # Si c'est un DataFrame ou une Series, on le convertit en JSON
+        if isinstance(result, (pd.DataFrame, pd.Series)):
+            result = result.to_json(orient="records")
+        
+        return {
+            "output": output.getvalue(),
+            "results": result if result is not None else "OK",
+            "success": True
+        }
     except Exception as e:
-        return {"error": str(e)}
+        import traceback
+        error_msg = f"{str(e)}\n{traceback.format_exc()}"
+        print(f"Erreur d'exécution : {error_msg}")
+        return {"error": str(e), "details": error_msg, "success": False}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)

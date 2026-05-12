@@ -22,17 +22,52 @@ def get_entrypoint():
     # En mode développement, on utilise le dossier local
     return os.path.join(os.path.dirname(__file__), 'dist', 'index.html')
 
+class Api:
+    def get_user_data_path(self):
+        return os.path.join(os.path.expanduser("~"), "NuruAnalytics")
+
+    def save_file_dialog(self, content, filename):
+        """Ouvre une boîte de dialogue pour enregistrer un fichier .nra"""
+        result = window.create_file_dialog(webview.SAVE_DIALOG, directory=os.path.expanduser("~"), save_filename=filename)
+        if result:
+            try:
+                with open(result, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                return {"success": True, "path": result}
+            except Exception as e:
+                return {"success": False, "error": str(e)}
+        return {"success": False, "error": "Cancelled"}
+
+    def open_file_dialog(self):
+        """Ouvre une boîte de dialogue pour charger un fichier .nra"""
+        result = window.create_file_dialog(webview.OPEN_DIALOG, allow_multiple=False, file_types=('Nuru Workspace (*.nra)', 'All files (*.*)'))
+        if result and len(result) > 0:
+            try:
+                with open(result[0], 'r', encoding='utf-8') as f:
+                    content = f.read()
+                return {"success": True, "content": content, "filename": os.path.basename(result[0])}
+            except Exception as e:
+                return {"success": False, "error": str(e)}
+        return {"success": False, "error": "Cancelled"}
+
 if __name__ == "__main__":
+    # Redirection des logs en mode production (EXE)
+    if hasattr(sys, '_MEIPASS'):
+        log_file = open("nuru_debug.log", "w", encoding="utf-8")
+        sys.stdout = log_file
+        sys.stderr = log_file
+        print("Application démarrée en mode production")
+
     # 1. Démarrer le backend dans un thread séparé
     t = threading.Thread(target=start_backend, daemon=True)
     t.start()
 
     # 2. Créer la fenêtre Desktop
-    # On pointe vers le fichier index.html local
-    # pywebview va gérer le chargement des ressources relatives (JS/CSS)
+    api = Api()
     window = webview.create_window(
         'Nuru Analytics',
         get_entrypoint(),
+        js_api=api,
         width=1280,
         height=720,
         min_size=(1024, 600),

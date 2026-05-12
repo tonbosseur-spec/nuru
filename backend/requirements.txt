@@ -11,3 +11,4 @@ pyinstaller
 pywebview
 pypiwin32
 python-multipart
+xlrd

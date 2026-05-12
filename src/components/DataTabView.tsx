@@ -16,11 +16,24 @@ export function DataTabView() {
       setLoading(true);
       try {
         // Fetch up to 100 rows for preview to keep rendering fast
-        const code = `last_result = df.head(100).to_json(orient="records")`;
+        const code = `last_result = df.head(100).to_json(orient="records") if df is not None else None`;
         const res = await engine.runCode(code);
+        
+        if (res.error) {
+          console.error("Backend error loading data preview:", res.error);
+          return;
+        }
+
         if (res.result) {
-          const parsed = JSON.parse(res.result);
-          setData(parsed);
+          try {
+            const parsed = typeof res.result === 'string' ? JSON.parse(res.result) : res.result;
+            setData(Array.isArray(parsed) ? parsed : []);
+          } catch (pErr) {
+            console.error("Failed to parse data preview JSON:", pErr, res.result);
+          }
+        } else {
+          console.log("No data returned from backend preview");
+          setData([]);
         }
       } catch (err) {
         console.error("Failed to load data preview", err);
