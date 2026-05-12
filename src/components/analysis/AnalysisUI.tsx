@@ -131,13 +131,11 @@ export function TestSelector({ options, selected, onToggle, label = "Tests à ef
                     </span>
                     <TooltipProvider>
                       <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button 
-                            className="text-slate-400 hover:text-indigo-500 transition-colors p-1 rounded-full hover:bg-indigo-100/50"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Info className="w-3.5 h-3.5" />
-                          </button>
+                        <TooltipTrigger 
+                          className="cursor-pointer text-slate-400 hover:text-indigo-500 transition-colors p-1 rounded-full hover:bg-indigo-100/50"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Info className="w-3.5 h-3.5" />
                         </TooltipTrigger>
                         <TooltipContent className="max-w-[240px] text-xs p-3">
                           {option.description}
