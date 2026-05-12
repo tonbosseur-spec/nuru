@@ -71,11 +71,40 @@ base64.b64encode(json_data.encode('utf-8')).decode('utf-8')
     }
   };
 
-  const exportResultsHTML = () => {
+  const exportResultsHTML = (options: { academic?: boolean } = {}) => {
     if (results.length === 0) {
       toast.error("Aucun résultat à exporter");
       return;
     }
+
+    const isAcademic = options.academic;
+    
+    const academicStyles = isAcademic ? `
+        body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; line-height: 2; padding: 1in; max-width: 8.5in; margin: 0 auto; background: white; }
+        .container { max-width: 100%; padding: 0; box-shadow: none; border: none; }
+        h1 { color: black; font-size: 12pt; text-align: center; margin-bottom: 2em; font-weight: normal; }
+        h2 { color: black; font-size: 12pt; font-weight: bold; margin-top: 1em; margin-bottom: 0.5em; text-align: center; }
+        .meta { color: black; border: none; text-align: center; margin-bottom: 2em; font-size: 12pt; padding: 0; }
+        .result-item { margin-bottom: 2em; }
+        .result-title { font-size: 12pt; font-weight: bold; margin-bottom: 1em; color: black; border: none; padding-left: 0; text-align: left; }
+        pre { background: white; color: black; border: 1px solid black; padding: 10px; font-family: 'Courier New', Courier, monospace; font-size: 10pt; line-height: 1.5; }
+        table { border-collapse: collapse; margin-bottom: 1em; width: 100%; border-top: 2px solid black; border-bottom: 2px solid black; font-size: 11pt; }
+        th, td { border: none !important; border-bottom: 1px solid black !important; padding: 8px !important; text-align: left; }
+        th { background: white !important; font-weight: bold; border-bottom: 1px solid black !important; }
+    ` : `
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; background: #f8f9fa; }
+        .container { max-width: 900px; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #2563eb; margin-bottom: 5px; text-align: left; }
+        .meta { color: #64748b; font-size: 0.9em; margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 20px; text-align: left; }
+        .result-item { margin-bottom: 60px; page-break-inside: avoid; }
+        .result-title { font-size: 1.5em; font-weight: bold; margin-bottom: 15px; color: #1e293b; border-left: 4px solid #2563eb; padding-left: 15px; text-align: left; }
+        .result-content { background: white; }
+        pre { background: #1e293b; color: #e2e8f0; padding: 15px; border-radius: 8px; font-size: 0.85em; margin-bottom: 20px; text-align: left; }
+        table { width: 100% !important; border-collapse: collapse; margin-bottom: 20px; text-align: left; }
+        th, td { border: 1px solid #dee2e6 !important; padding: 12px !important; }
+        th { background-color: #f8f9fa !important; }
+        .plotly-placeholder { font-style: italic; color: #94a3b8; border: 1px dashed #cbd5e1; padding: 20px; text-align: center; border-radius: 8px; }
+    `;
 
     const htmlContent = `
 <!DOCTYPE html>
@@ -83,31 +112,26 @@ base64.b64encode(json_data.encode('utf-8')).decode('utf-8')
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rapport Nuru Analytics - ${workspaceName}</title>
-    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <title>${isAcademic ? 'Manuscrit - ' : 'Rapport Nuru Analytics - '}${workspaceName}</title>
+    ${!isAcademic ? '<link href="/css/bootstrap.min.css" rel="stylesheet">' : ''}
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; background: #f8f9fa; }
-        .container { max-width: 900px; background: white; padding: 40px; border-radius: 12px; shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h1 { color: #2563eb; margin-bottom: 5px; }
-        .meta { color: #64748b; font-size: 0.9em; margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
-        .result-item { margin-bottom: 60px; page-break-inside: avoid; }
-        .result-title { font-size: 1.5em; font-weight: bold; margin-bottom: 15px; color: #1e293b; border-left: 4px solid #2563eb; padding-left: 15px; }
-        .result-content { background: white; }
-        pre { background: #1e293b; color: #e2e8f0; padding: 15px; border-radius: 8px; font-size: 0.85em; margin-bottom: 20px; }
-        table { width: 100% !important; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { border: 1px solid #dee2e6 !important; padding: 12px !important; }
-        th { background-color: #f8f9fa !important; }
-        .plotly-placeholder { font-style: italic; color: #94a3b8; border: 1px dashed #cbd5e1; padding: 20px; text-align: center; border-radius: 8px; }
+        ${academicStyles}
     </style>
     <script src="/js/plotly.min.js"></script>
 </head>
 <body>
-    <div class="container shadow-sm">
-        <h1>Rapport d'Analyse Statistique</h1>
+    <div class="container ${!isAcademic ? 'shadow-sm' : ''}">
+        <h1>${isAcademic ? workspaceName : "Rapport d'Analyse Statistique"}</h1>
         <div class="meta">
-            Projet : <b>${workspaceName}</b><br/>
-            Analyste : <b>${user?.firstName} ${user?.lastName}</b><br/>
-            Date : ${new Date().toLocaleString('fr-FR')}
+            ${isAcademic ? `
+                ${user?.firstName} ${user?.lastName}<br/>
+                Département de Statistique<br/>
+                ${new Date().toLocaleDateString('fr-FR')}
+            ` : `
+                Projet : <b>${workspaceName}</b><br/>
+                Analyste : <b>${user?.firstName} ${user?.lastName}</b><br/>
+                Date : ${new Date().toLocaleString('fr-FR')}
+            `}
         </div>
 
         ${results.map((res, idx) => {
@@ -200,8 +224,11 @@ base64.b64encode(json_data.encode('utf-8')).decode('utf-8')
             <CardDescription>Exportez tous les résultats d'analyse au format HTML ou PDF.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-             <Button onClick={exportResultsHTML} className="w-full justify-start" variant="outline">
+             <Button onClick={() => exportResultsHTML({ academic: false })} className="w-full justify-start" variant="outline">
               <FileText className="w-4 h-4 mr-2" /> Exporter le rapport (HTML)
+            </Button>
+             <Button onClick={() => exportResultsHTML({ academic: true })} className="w-full justify-start border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100" variant="outline">
+              <FileText className="w-4 h-4 mr-2" /> Rapport Académique (Format APA)
             </Button>
             <Button onClick={() => window.print()} className="w-full justify-start" variant="outline">
               <Download className="w-4 h-4 mr-2" /> Imprimer / Sauvegarder en PDF

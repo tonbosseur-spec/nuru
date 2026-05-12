@@ -52,6 +52,19 @@ print("<h4 className='font-bold text-blue-900 mb-2'>Interprétation des Résulta
 print(f"<p className='mb-1'><b>Significativité :</b> {interp_pval}</p>")
 print("</div>")
 `;
+    } else if (method === 'wilcoxon') {
+      code = `
+data = df[['${var1}', '${var2}']].dropna()
+stat, p = stats.wilcoxon(data['${var1}'], data['${var2}'])
+
+print(f"<h3>Wilcoxon Signed-Rank Test: ${var1} vs ${var2}</h3>")
+print(f"<p><b>Statistic:</b> {stat:.4f}, <b>p-value:</b> {p:.4e}</p>")
+interp_pval = f"La différence de distribution entre {var1} et {var2} est statistiquement significative (p < 0.05)." if p < 0.05 else f"La différence entre {var1} et {var2} n'est pas statistiquement significative (p >= 0.05)."
+print("<div className='mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-md text-slate-800'>")
+print("<h4 className='font-bold text-blue-900 mb-2'>Interprétation des Résultats</h4>")
+print(f"<p className='mb-1'><b>Significativité :</b> {interp_pval}</p>")
+print("</div>")
+`;
     } else if (method === 'kruskal') {
       code = `
 groups = [group['${var1}'].dropna() for name, group in df.groupby('${var2}')]

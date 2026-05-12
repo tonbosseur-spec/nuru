@@ -164,7 +164,7 @@ export function DataTabView() {
 
       {/* Zone de préparation */}
       {activePanel === 'prepare' && columns.length > 0 && (
-        <div className="bg-white border-b border-slate-200 p-4 grid grid-cols-1 md:grid-cols-3 gap-6 animate-in slide-in-from-top duration-300">
+        <div className="bg-white border-b border-slate-200 p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-in slide-in-from-top duration-300">
           
           <div className="space-y-3">
             <h4 className="text-[13px] font-semibold text-slate-700 flex items-center">
@@ -193,6 +193,29 @@ export function DataTabView() {
                   <Button size="sm" className="h-7 text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 shadow-none" onClick={() => handleRename(editingCol)}>Ok</Button>
                 </div>
               )}
+            </div>
+            
+            <h4 className="text-[13px] font-semibold text-slate-700 flex items-center mt-4">
+              <Type className="w-4 h-4 mr-2" /> One-Hot Encoding
+            </h4>
+            <div className="flex flex-col space-y-2">
+               <Button 
+                size="sm" 
+                variant="outline" 
+                className="h-7 text-xs text-slate-600 bg-white"
+                onClick={async () => {
+                  try {
+                    await engine.runCode('cat_cols = df.select_dtypes(exclude=["number"]).columns\ndf = pd.get_dummies(df, columns=cat_cols, drop_first=True, dtype=int)\nlast_result = "ok"');
+                    toast.success("Variables catégorielles transformées en One-Hot (n-1 colonnes).");
+                    engine.runCode(`last_result = [{"name": c, "type": "numeric" if pd.api.types.is_numeric_dtype(df[c]) else "categorical", "missing": int(df[c].isna().sum())} for c in df.columns]`).then(res => {
+                        if (res.result) setDataset("Modified", JSON.parse(res.result), rowCount, "");
+                        loadPreview();
+                    });
+                  } catch(e) { toast.error("Erreur de transformation One-Hot"); }
+                }}
+               >
+                 Toutes les cat. (Dummies)
+               </Button>
             </div>
           </div>
           
@@ -228,7 +251,7 @@ export function DataTabView() {
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-3 lg:col-span-2">
             <h4 className="text-[13px] font-semibold text-slate-700 flex items-center">
               <Trash2 className="w-4 h-4 mr-2" /> Valeurs manquantes (NA)
             </h4>
@@ -318,6 +341,66 @@ export function DataTabView() {
                 }}
                >
                  Imputer Numérique (KNN Avancé)
+               </Button>
+            </div>
+
+            <h4 className="text-[13px] font-semibold text-slate-700 flex items-center mt-6">
+              <Filter className="w-4 h-4 mr-2" /> Valeurs atypiques (Outliers)
+            </h4>
+            <div className="flex flex-wrap gap-2">
+               <Button 
+                size="sm" 
+                variant="outline" 
+                className="h-7 text-xs text-slate-600 bg-white"
+                onClick={async () => {
+                  try {
+                    await engine.runCode(`
+import numpy as np
+numeric_cols = df.select_dtypes(include=["number"]).columns
+for c in numeric_cols:
+    Q1 = df[c].quantile(0.25)
+    Q3 = df[c].quantile(0.75)
+    IQR = Q3 - Q1
+    lower_bound = Q1 - 1.5 * IQR
+    upper_bound = Q3 + 1.5 * IQR
+    df.loc[(df[c] < lower_bound) | (df[c] > upper_bound), c] = np.nan
+df = df.dropna(subset=numeric_cols)
+last_result = "ok"
+                    `);
+                    toast.success("Outliers (Méthode IQR) identifiés et supprimés.");
+                    engine.runCode(`last_result = [{"name": c, "type": "numeric" if pd.api.types.is_numeric_dtype(df[c]) else "categorical", "missing": int(df[c].isna().sum())} for c in df.columns]`).then(res => {
+                        if (res.result) setDataset("Modified", JSON.parse(res.result), rowCount, "");
+                        loadPreview();
+                    });
+                  } catch(e) { toast.error("Erreur - Suppression IQR"); }
+                }}
+               >
+                 Supprimer (Méthode IQR)
+               </Button>
+
+               <Button 
+                size="sm" 
+                variant="outline" 
+                className="h-7 text-xs text-slate-600 bg-white"
+                onClick={async () => {
+                  try {
+                    await engine.runCode(`
+import numpy as np
+import scipy.stats as stats
+numeric_cols = df.select_dtypes(include=["number"]).columns
+z_scores = np.abs(stats.zscore(df[numeric_cols].dropna()))
+df = df[(z_scores < 3).all(axis=1)]
+last_result = "ok"
+                    `);
+                    toast.success("Outliers (Z-Score > 3) supprimés.");
+                    engine.runCode(`last_result = [{"name": c, "type": "numeric" if pd.api.types.is_numeric_dtype(df[c]) else "categorical", "missing": int(df[c].isna().sum())} for c in df.columns]`).then(res => {
+                        if (res.result) setDataset("Modified", JSON.parse(res.result), rowCount, "");
+                        loadPreview();
+                    });
+                  } catch(e) { toast.error("Erreur - Supression Z-Score"); }
+                }}
+               >
+                 Supprimer (Z-score &gt; 3)
                </Button>
             </div>
           </div>
