@@ -81,7 +81,7 @@ export function ResultsArea() {
                               modeBarButtonsToRemove: ['lasso2d', 'select2d'],
                               toImageButtonOptions: {
                                 format: 'png',
-                                filename: 'statstudio_plot',
+                                filename: 'nuru_analytics_plot',
                                 height: 500,
                                 width: 700,
                                 scale: 2

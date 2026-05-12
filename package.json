@@ -1,5 +1,5 @@
 {
-  "name": "react-example",
+  "name": "nuru-analytics",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -8,7 +8,11 @@
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "python pyproject_build.py && tauri build",
+    "desktop:build": "npm run build && pyinstaller --noconfirm nuru.spec"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
@@ -47,6 +51,7 @@
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.3",
-    "vite-plugin-pwa": "^1.3.0"
+    "vite-plugin-pwa": "^1.3.0",
+    "@tauri-apps/cli": "^1.5.0"
   }
 }

@@ -21,7 +21,7 @@ export function PythonCodeViewer() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'statstudio_analysis.py';
+    a.download = 'nuru_analytics_analysis.py';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

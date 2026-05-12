@@ -1,6 +1,6 @@
-# StatStudio 📊
+# Nuru Analytics 📊
 
-StatStudio est une application web moderne d'analyse statistique inspirée de logiciels professionnels comme SPSS, Rcmdr et Jamovi. Elle utilise une architecture innovante basée sur **Pyodide** pour exécuter le moteur d'analyse Python (`pandas`, `scipy`, `statsmodels`, `plotly`) **directement dans le navigateur du client**, sans dépendre d'un serveur backend lourd.
+Nuru Analytics est une application web moderne d'analyse statistique inspirée de logiciels professionnels comme SPSS, Rcmdr et Jamovi. Elle utilise une architecture innovante basée sur **Pyodide** pour exécuter le moteur d'analyse Python (`pandas`, `scipy`, `statsmodels`, `plotly`) **directement dans le navigateur du client**, sans dépendre d'un serveur backend lourd.
 
 ## 🚀 Fonctionnalités
 - **Importation de Données :** Glisser-déposer de fichiers `.csv` ou `.txt` (moteur Pandas).

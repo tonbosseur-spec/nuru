@@ -75,18 +75,18 @@ interface AppState {
 }
 
 const getStoredUser = () => {
-  const stored = localStorage.getItem('statstudio_user');
+  const stored = localStorage.getItem('nuru_analytics_user');
   return stored ? JSON.parse(stored) : null;
 };
 
 export const useStore = create<AppState>((set, get) => ({
   user: getStoredUser(),
   setUser: (user) => {
-    localStorage.setItem('statstudio_user', JSON.stringify(user));
+    localStorage.setItem('nuru_analytics_user', JSON.stringify(user));
     set({ user });
   },
   logout: () => {
-    localStorage.removeItem('statstudio_user');
+    localStorage.removeItem('nuru_analytics_user');
     set({ user: null, currentWorkspaceId: null });
   },
 
@@ -94,7 +94,7 @@ export const useStore = create<AppState>((set, get) => ({
   engineStatus: 'Initializing...',
   
   currentWorkspaceId: null,
-  workspaceName: 'Nouveau projet',
+  workspaceName: 'Nouveau projet Nuru',
   datasetName: null,
   csvData: null,
   columns: [],
@@ -128,7 +128,7 @@ export const useStore = create<AppState>((set, get) => ({
   toggleSidebar: () => set((state) => ({ sidebarVisible: !state.sidebarVisible })),
   toggleConsole: () => set((state) => ({ consoleVisible: !state.consoleVisible })),
   
-  createNewWorkspace: (name = 'Nouveau projet') => {
+  createNewWorkspace: (name = 'Nouveau projet Nuru') => {
     const id = crypto.randomUUID();
     set({
       currentWorkspaceId: id,

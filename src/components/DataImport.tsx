@@ -1,13 +1,15 @@
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { UploadCloud, FileSpreadsheet } from 'lucide-react';
+import { UploadCloud, FileSpreadsheet, Keyboard } from 'lucide-react';
 import { engine } from '@/src/lib/pythonEngine';
 import { useStore } from '@/src/store';
+import { useTranscriptionStore } from '@/src/store/transcriptionStore';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 
 export function DataImport() {
   const { setDataset, isEngineReady, engineStatus } = useStore();
+  const { setTranscriptionMode } = useTranscriptionStore();
   const [isReading, setIsReading] = useState(false);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
@@ -89,6 +91,27 @@ export function DataImport() {
             <span className="px-2 py-1 bg-slate-100 rounded">.json</span>
           </div>
         </div>
+      </div>
+
+      <div className="mt-8 flex flex-col items-center">
+        <div className="flex items-center space-x-4 w-full">
+          <div className="flex-1 h-px bg-slate-200"></div>
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Ou</span>
+          <div className="flex-1 h-px bg-slate-200"></div>
+        </div>
+        
+        <button 
+          onClick={() => setTranscriptionMode(true)}
+          className="mt-6 flex items-center space-x-3 px-8 py-4 bg-white border-2 border-slate-200 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all group"
+        >
+          <div className="p-2 bg-slate-100 rounded-lg group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
+            <Keyboard className="w-5 h-5 text-slate-600 group-hover:text-blue-600" />
+          </div>
+          <div className="text-left">
+            <p className="font-bold text-slate-800">Saisie manuelle</p>
+            <p className="text-xs text-slate-500">Créer un nouveau jeu de données par transcription</p>
+          </div>
+        </button>
       </div>
     </div>
   );

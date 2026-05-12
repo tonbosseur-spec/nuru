@@ -8,46 +8,55 @@ self.onmessage = async (event) => {
   try {
     if (type === 'INIT') {
       if (!pyodide) {
-        self.postMessage({ type: 'STATUS', status: 'Initialisation de Python (Local)...' });
-        pyodide = await loadPyodide({
-          indexURL: '/pyodide/',
-        });
-        self.postMessage({ type: 'STATUS', status: 'Chargement des bibliothèques locales...' });
+        self.postMessage({ type: 'STATUS', status: 'Initialisation de Nuru Engine (Cloud)...' });
+        
         try {
-          // 1. Charger micropip en premier
+          // Explicitly use the official CDN to avoid local module loading errors
+          pyodide = await loadPyodide({
+            indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/'
+          });
+          
+          self.postMessage({ type: 'STATUS', status: 'Activation de Micropip...' });
           await pyodide.loadPackage('micropip');
+          const micropip = pyodide.pyimport("micropip");
           
-          // 2. Charger les packages qui sont dans le lock file (pandas, numpy, scipy, statsmodels, sklearn)
-          // Note: scikit-learn s'appelle scikit-learn dans Pyodide
-          await pyodide.loadPackage(['pandas', 'numpy', 'scipy', 'scikit-learn', 'statsmodels']);
+          self.postMessage({ type: 'STATUS', status: 'Installation de la pile scientifique (Nuru Core)...' });
           
-          // 3. Charger les packages restants via micropip à partir des fichiers locaux
-          await pyodide.runPythonAsync(`
-import micropip
-import os
+          // On installe tout via micropip qui gère mieux les dépendances transverses
+          await micropip.install([
+            'numpy', 
+            'pandas', 
+            'scipy', 
+            'scikit-learn', 
+            'statsmodels', 
+            'pytz', 
+            'python-dateutil',
+            'plotly', 
+            'openpyxl', 
+            'tenacity'
+          ]);
 
-# Installation locale pour Plotly et Openpyxl
-try:
-    # On installe les .whl locaux qu'on a téléchargé dans /public/pyodide/
-    # Dans l'environnement browser/worker, le chemin relatif /pyodide/ correspond au dossier public/pyodide/
-    await micropip.install([
-        '/pyodide/tenacity-8.2.3-py3-none-any.whl',
-        '/pyodide/plotly-5.24.1-py3-none-any.whl',
-        '/pyodide/et_xmlfile-1.1.0-py3-none-any.whl',
-        '/pyodide/openpyxl-3.1.2-py2.py3-none-any.whl'
-    ])
-except Exception as e:
-    print(f"Erreur d'installation locale: {e}")
+          self.postMessage({ type: 'STATUS', status: 'Vérification de l\'intégrité...' });
+          
+          // Vérification finale des imports
+          await pyodide.runPythonAsync(`
+import numpy as np
+import pandas as pd
+import scipy
+import sklearn
+import statsmodels
+import plotly
+print(f"Nuru Engine Ready - NumPy {np.__version__}, Pandas {pd.__version__}")
           `);
-        } catch (err) {
-          console.error("Failed to load environment:", err);
-          // Tentative de secours ultime pour pandas si tout a échoué
-          try {
-             await pyodide.loadPackage('pandas');
-          } catch(e) {}
+
+        } catch (err: any) {
+          console.error("Critical error loading environment:", err);
+          self.postMessage({ type: 'STATUS', status: 'Échec de l\'initialisation.' });
+          self.postMessage({ id, type: 'ERROR', error: `L'initialisation via le cloud a échoué. Vérifiez votre connexion internet. Détails: ${err.message}` });
+          return;
         }
         
-        self.postMessage({ type: 'STATUS', status: 'Finalizing Python environment...' });
+        self.postMessage({ type: 'STATUS', status: 'Finalisation de l\'environnement...' });
         // Setup Python environment
         await pyodide.runPythonAsync(`
 import sys

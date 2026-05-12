@@ -60,7 +60,7 @@ base64.b64encode(json_data.encode('utf-8')).decode('utf-8')
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${workspaceName || 'statstudio_project'}.statstudio`;
+      a.download = `${workspaceName || 'nuru_analytics_project'}.nra`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -83,7 +83,7 @@ base64.b64encode(json_data.encode('utf-8')).decode('utf-8')
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rapport StatStudio - ${workspaceName}</title>
+    <title>Rapport Nuru Analytics - ${workspaceName}</title>
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; background: #f8f9fa; }
@@ -151,7 +151,7 @@ base64.b64encode(json_data.encode('utf-8')).decode('utf-8')
         }).join('')}
         
         <footer class="mt-5 pt-4 border-top text-center text-muted text-small">
-            Généré avec StatStudio — Plateforme d'analyse statistique locale et sécurisée.
+            Généré avec Nuru Analytics — Plateforme d'analyse statistique locale et sécurisée.
         </footer>
     </div>
 </body>
@@ -210,12 +210,12 @@ base64.b64encode(json_data.encode('utf-8')).decode('utf-8')
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center"><Package className="w-5 h-5 mr-2 text-purple-600" /> Projet (.statstudio)</CardTitle>
+            <CardTitle className="flex items-center"><Package className="w-5 h-5 mr-2 text-purple-600" /> Projet (.nra)</CardTitle>
             <CardDescription>Sauvegarder l'intégralité du projet pour le restaurer plus tard.</CardDescription>
           </CardHeader>
           <CardContent>
              <Button onClick={exportWorkspace} className="w-full justify-start border-purple-100 text-purple-700 hover:bg-purple-50" variant="outline">
-              <Download className="w-4 h-4 mr-2" /> Télécharger monnetir.statstudio
+              <Download className="w-4 h-4 mr-2" /> Télécharger monnetir.nra
             </Button>
           </CardContent>
         </Card>

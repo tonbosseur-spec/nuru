@@ -7,14 +7,15 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   return {
+    base: './',
     plugins: [
       react(), 
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
         manifest: {
-          name: 'StatStudio',
-          short_name: 'StatStudio',
+          name: 'Nuru Analytics',
+          short_name: 'Nuru',
           theme_color: '#ffffff',
         },
         workbox: {

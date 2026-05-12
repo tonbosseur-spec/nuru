@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '@/src/store';
+import { useTranscriptionStore } from '@/src/store/transcriptionStore';
 import { engine } from '@/src/lib/pythonEngine';
 import { DataImport } from '../DataImport';
 import { DataTabView } from '../DataTabView';
+import { DataTranscription } from '../DataTranscription';
+import { AnalysisAssistant } from '../AnalysisAssistant';
 import { Toaster } from '@/components/ui/sonner';
 import { Button } from '@/components/ui/button';
-import { Home, Edit2, Save } from 'lucide-react';
+import { Home, Edit2, Save, Zap, Sparkles } from 'lucide-react';
 
 import { DescriptiveArea } from '../areas/DescriptiveArea';
 import { TestsArea } from '../areas/TestsArea';
@@ -23,6 +26,7 @@ export function AppLayout() {
     updateWorkspaceName,
     closeWorkspace
   } = useStore();
+  const { isTranscriptionMode } = useTranscriptionStore();
   const [activeTab, setActiveTab] = useState('fichier');
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState('');
@@ -39,9 +43,18 @@ export function AppLayout() {
   };
 
   const renderContent = () => {
+    if (isTranscriptionMode) {
+      return (
+        <div className="p-8 h-full overflow-y-auto">
+          <DataTranscription />
+        </div>
+      );
+    }
+
     switch (activeTab) {
       case 'fichier': return <div className="p-8"><DataImport /></div>;
       case 'donnees': return <DataTabView />;
+      case 'assistant': return <div className="py-8"><AnalysisAssistant onNavigation={(tab) => setActiveTab(tab)} /></div>;
       case 'descriptives': return <DescriptiveArea />;
       case 'tests': return <TestsArea />;
       case 'regression': return <RegressionArea />;
@@ -61,10 +74,10 @@ export function AppLayout() {
           </Button>
           
           <div className="font-bold text-lg text-slate-800 tracking-tight flex items-center">
-            <span className="bg-blue-600 text-white w-7 h-7 rounded shrink-0 flex items-center justify-center mr-2 shadow-sm text-sm">
-               Σ
-            </span>
-            StatStudio
+            <div className="bg-indigo-600 text-white p-1.25 rounded-lg shrink-0 flex items-center justify-center mr-2.5 shadow-sm">
+               <Zap className="w-4.5 h-4.5 fill-current" />
+            </div>
+            Nuru Analytics
           </div>
 
           {isEditingName ? (
@@ -113,6 +126,24 @@ export function AppLayout() {
           <nav className="p-3 space-y-0.5">
             <button onClick={() => setActiveTab('fichier')} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${activeTab === 'fichier' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Fichier</button>
             <button onClick={() => setActiveTab('donnees')} disabled={!datasetName} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'donnees' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Données</button>
+            
+            <div className="py-2 px-3">
+               <div className="h-px bg-slate-100"></div>
+            </div>
+
+            <button 
+              onClick={() => setActiveTab('assistant')} 
+              disabled={!datasetName} 
+              className={`w-full flex items-center px-3 py-2 text-[11px] uppercase tracking-widest rounded-xl transition-all duration-300 ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'assistant' ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold shadow-lg shadow-indigo-100 scale-105' : 'text-indigo-600 bg-indigo-50/50 hover:bg-indigo-100/50 font-bold border border-indigo-100'}`}
+            >
+              <Sparkles className={`w-3.5 h-3.5 mr-2 ${activeTab === 'assistant' ? 'animate-pulse' : ''}`} />
+              Assistant
+            </button>
+
+            <div className="py-2 px-3">
+               <div className="h-px bg-slate-100"></div>
+            </div>
+
             <button onClick={() => setActiveTab('descriptives')} disabled={!datasetName} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'descriptives' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Descriptives</button>
             <button onClick={() => setActiveTab('tests')} disabled={!datasetName} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'tests' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Tests statistiques</button>
             <button onClick={() => setActiveTab('regression')} disabled={!datasetName} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'regression' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Régression</button>

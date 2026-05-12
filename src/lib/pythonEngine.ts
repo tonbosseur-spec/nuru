@@ -1,81 +1,96 @@
 import { useStore } from '../store';
 
+const API_URL = 'http://127.0.0.1:8000';
+
 class PythonEngine {
-  worker: Worker | null = null;
-  callbacks: Map<string, Function> = new Map();
-  readyPromise: Promise<void> | null = null;
+  isInitialized = false;
 
-  init() {
-    if (this.worker) return this.readyPromise;
+  async init() {
+    if (this.isInitialized) return;
     
-    this.worker = new Worker(new URL('../workers/python.worker.ts', import.meta.url), {
-      type: 'module'
-    });
-
-    this.worker.onmessage = (e) => {
-      const { id, type, payload, status, error } = e.data;
-      
-      if (type === 'STATUS') {
-        useStore.getState().setEngineReady(false, status);
-      } else if (type === 'INIT_DONE') {
-        useStore.getState().setEngineReady(true, 'Prêt');
-        if (id && this.callbacks.has(id)) {
-          this.callbacks.get(id)!(payload);
-          this.callbacks.delete(id);
-        }
-      } else if (type === 'DATA_LOADED') {
-        if (id && this.callbacks.has(id)) {
-          this.callbacks.get(id)!(payload);
-          this.callbacks.delete(id);
-        }
-      } else if (type === 'RUN_RESULT') {
-         if (id && this.callbacks.has(id)) {
-          this.callbacks.get(id)!(payload);
-          this.callbacks.delete(id);
-        }
-      } else if (type === 'ERROR') {
-        console.error('Python Engine Error:', error);
-        useStore.getState().setEngineReady(false, `Erreur: ${error}`);
-        if (id && this.callbacks.has(id)) {
-          this.callbacks.get(id)!({ error });
-          this.callbacks.delete(id);
-        }
+    useStore.getState().setEngineReady(false, 'Connexion au moteur local...');
+    
+    // Tentative de connexion au backend
+    try {
+      const response = await fetch(`${API_URL}/health`);
+      if (response.ok) {
+        this.isInitialized = true;
+        useStore.getState().setEngineReady(true, 'Prêt (Local)');
+      } else {
+        throw new Error('Backend non prêt');
       }
-    };
-
-    const id = Date.now().toString();
-    this.readyPromise = new Promise((resolve) => {
-      this.callbacks.set(id, resolve);
-      this.worker!.postMessage({ id, type: 'INIT' });
-    });
-    return this.readyPromise;
+    } catch (err) {
+      // Si le backend n'est pas encore prêt, on réessaye dans 1s
+      setTimeout(() => this.init(), 1000);
+    }
   }
 
   async loadData(csvStr: string): Promise<any> {
     await this.init();
-    const id = Date.now().toString() + Math.random().toString();
-    return new Promise((resolve) => {
-      this.callbacks.set(id, resolve);
-      this.worker!.postMessage({ id, type: 'LOAD_DATA', payload: { csvStr } });
-    });
+    const formData = new FormData();
+    const blob = new Blob([csvStr], { type: 'text/csv' });
+    formData.append('file', blob, 'data.csv');
+
+    try {
+      const response = await fetch(`${API_URL}/load`, {
+        method: 'POST',
+        body: formData
+      });
+      return await response.json();
+    } catch (error) {
+      return { error: String(error) };
+    }
   }
 
   async loadFile(buffer: ArrayBuffer, filename: string): Promise<any> {
     await this.init();
-    const id = Date.now().toString() + Math.random().toString();
-    return new Promise((resolve) => {
-      this.callbacks.set(id, resolve);
-      this.worker!.postMessage({ id, type: 'LOAD_FILE', payload: { buffer, filename } });
-    });
+    
+    const formData = new FormData();
+    const blob = new Blob([buffer]);
+    formData.append('file', blob, filename);
+
+    try {
+      const response = await fetch(`${API_URL}/load`, {
+        method: 'POST',
+        body: formData
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('API Load Error:', error);
+      return { error: String(error) };
+    }
   }
 
+  async analyzeDescriptive(column: string): Promise<any> {
+    await this.init();
+    try {
+      const response = await fetch(`${API_URL}/analyze/descriptive?column=${encodeURIComponent(column)}`, {
+        method: 'POST'
+      });
+      return await response.json();
+    } catch (error) {
+      return { error: String(error) };
+    }
+  }
+
+  // Méthode générique pour exécuter du code
   async runCode(code: string): Promise<{output: string, result: any, error?: string}> {
     await this.init();
-    const id = Date.now().toString() + Math.random().toString();
-    return new Promise((resolve) => {
-      this.callbacks.set(id, resolve);
-      this.worker!.postMessage({ id, type: 'RUN_CODE', payload: { code } });
-    });
+    try {
+      const response = await fetch(`${API_URL}/execute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code })
+      });
+      const data = await response.json();
+      return { 
+        output: data.output || "", 
+        result: data.results || null, 
+        error: data.error 
+      };
+    } catch (error) {
+      return { output: "", result: null, error: String(error) };
+    }
   }
 }
 
