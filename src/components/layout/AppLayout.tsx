@@ -6,7 +6,7 @@ import { DataImport } from '../DataImport';
 import { DataTabView } from '../DataTabView';
 import { DataTranscription } from '../DataTranscription';
 import { AnalysisAssistant } from '../AnalysisAssistant';
-import { Toaster } from '@/components/ui/sonner';
+import { Toaster } from '../ui/sonner.tsx';
 import { Button } from '@/components/ui/button';
 import { Home, Edit2, Save, Zap, Sparkles } from 'lucide-react';
 
@@ -137,7 +137,7 @@ export function AppLayout() {
         <aside className="w-52 border-r bg-white flex flex-col z-0 shrink-0 shadow-sm">
           <nav className="p-3 space-y-0.5">
             <button onClick={() => setActiveTab('fichier')} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${activeTab === 'fichier' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Fichier</button>
-            <button onClick={() => setActiveTab('donnees')} disabled={!datasetName} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'donnees' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Données</button>
+            <button onClick={() => setActiveTab('donnees')} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${activeTab === 'donnees' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Données</button>
             
             <div className="py-2 px-3">
                <div className="h-px bg-slate-100"></div>
@@ -145,8 +145,7 @@ export function AppLayout() {
 
             <button 
               onClick={() => setActiveTab('assistant')} 
-              disabled={!datasetName} 
-              className={`w-full flex items-center px-3 py-2 text-[11px] uppercase tracking-widest rounded-xl transition-all duration-300 ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'assistant' ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold shadow-lg shadow-indigo-100 scale-105' : 'text-indigo-600 bg-indigo-50/50 hover:bg-indigo-100/50 font-bold border border-indigo-100'}`}
+              className={`w-full flex items-center px-3 py-2 text-[11px] uppercase tracking-widest rounded-xl transition-all duration-300 ${activeTab === 'assistant' ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold shadow-lg shadow-indigo-100 scale-105' : 'text-indigo-600 bg-indigo-50/50 hover:bg-indigo-100/50 font-bold border border-indigo-100'}`}
             >
               <Sparkles className={`w-3.5 h-3.5 mr-2 ${activeTab === 'assistant' ? 'animate-pulse' : ''}`} />
               Assistant
@@ -156,12 +155,12 @@ export function AppLayout() {
                <div className="h-px bg-slate-100"></div>
             </div>
 
-            <button onClick={() => setActiveTab('descriptives')} disabled={!datasetName} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'descriptives' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Descriptives</button>
-            <button onClick={() => setActiveTab('tests')} disabled={!datasetName} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'tests' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Tests statistiques</button>
-            <button onClick={() => setActiveTab('regression')} disabled={!datasetName} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'regression' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Régression</button>
-            <button onClick={() => setActiveTab('graphiques')} disabled={!datasetName} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'graphiques' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Graphiques</button>
-            <button onClick={() => setActiveTab('code')} disabled={!datasetName} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'code' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Code Python</button>
-            <button onClick={() => setActiveTab('export')} disabled={!datasetName} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${!datasetName ? 'opacity-50 cursor-not-allowed' : activeTab === 'export' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Export</button>
+            <button onClick={() => setActiveTab('descriptives')} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${activeTab === 'descriptives' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Descriptives</button>
+            <button onClick={() => setActiveTab('tests')} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${activeTab === 'tests' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Tests statistiques</button>
+            <button onClick={() => setActiveTab('regression')} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${activeTab === 'regression' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Régression</button>
+            <button onClick={() => setActiveTab('graphiques')} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${activeTab === 'graphiques' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Graphiques</button>
+            <button onClick={() => setActiveTab('code')} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${activeTab === 'code' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Code Python</button>
+            <button onClick={() => setActiveTab('export')} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${activeTab === 'export' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Export</button>
           </nav>
         </aside>
 

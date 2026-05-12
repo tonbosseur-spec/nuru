@@ -123,15 +123,6 @@ export function DataTabView() {
     }
   };
 
-  if (!columns.length) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full text-slate-400">
-        <TableIcon className="w-16 h-16 mb-4 opacity-20" />
-        <p>Aucune donnée chargée</p>
-      </div>
-    );
-  }
-
   return (
     <div className="h-full flex flex-col bg-slate-50">
       {/* Mini-Barre d'outils */}
@@ -149,6 +140,7 @@ export function DataTabView() {
             variant={activePanel === 'prepare' ? 'secondary' : 'ghost'} 
             size="sm"
             onClick={() => setActivePanel('prepare')}
+            disabled={!columns.length}
             className="text-xs"
           >
             <Settings2 className="w-3.5 h-3.5 mr-2" /> Nettoyage
@@ -157,6 +149,7 @@ export function DataTabView() {
             variant={activePanel === 'filter' ? 'secondary' : 'ghost'} 
             size="sm"
             onClick={() => setActivePanel('filter')}
+            disabled={!columns.length}
             className="text-xs"
           >
             <Filter className="w-3.5 h-3.5 mr-2" /> Filtres
@@ -169,7 +162,7 @@ export function DataTabView() {
       </div>
 
       {/* Zone de préparation */}
-      {activePanel === 'prepare' && (
+      {activePanel === 'prepare' && columns.length > 0 && (
         <div className="bg-white border-b border-slate-200 p-4 grid grid-cols-1 md:grid-cols-2 gap-6 animate-in slide-in-from-top duration-300">
           <div className="space-y-3">
             <h4 className="text-sm font-semibold text-slate-700 flex items-center">
@@ -238,7 +231,7 @@ export function DataTabView() {
       )}
 
       {/* Zone de filtres */}
-      {activePanel === 'filter' && (
+      {activePanel === 'filter' && columns.length > 0 && (
         <div className="bg-white border-b border-slate-200 p-4 animate-in slide-in-from-top duration-300">
           <div className="max-w-3xl space-y-2">
             <label className="text-sm font-semibold text-slate-700">Filtre Global (Syntaxe Python/Pandas)</label>
@@ -305,7 +298,8 @@ export function DataTabView() {
               {data.length === 0 && !loading && (
                 <tr>
                   <td colSpan={columns.length + 1} className="px-4 py-20 text-center text-slate-400">
-                    Aucune donnée à afficher pour le moment
+                    <TableIcon className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                    {columns.length === 0 ? "Veuillez charger un fichier pour voir les données" : "Aucune donnée à afficher pour le moment"}
                   </td>
                 </tr>
               )}
