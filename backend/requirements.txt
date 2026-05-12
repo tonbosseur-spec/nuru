@@ -10,3 +10,4 @@ openpyxl
 pyinstaller
 pywebview
 pypiwin32
+python-multipart

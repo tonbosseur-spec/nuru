@@ -22,6 +22,8 @@ a = Analysis(
         'uvicorn.lifespan',
         'uvicorn.lifespan.on',
         'fastapi',
+        'python-multipart',
+        'multipart',
     ],
     hookspath=[],
     hooksconfig={},
