@@ -33,6 +33,7 @@ self.onmessage = async (event) => {
             'python-dateutil',
             'plotly', 
             'openpyxl', 
+            'xlrd',
             'tenacity'
           ]);
 

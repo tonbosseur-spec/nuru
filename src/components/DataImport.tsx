@@ -52,6 +52,7 @@ export function DataImport() {
       'text/csv': ['.csv'],
       'text/plain': ['.txt'],
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+      'application/vnd.ms-excel': ['.xls'],
       'application/x-stata': ['.dta'],
       'application/x-spss-sav': ['.sav'],
       'application/json': ['.json']
@@ -87,6 +88,7 @@ export function DataImport() {
             <span className="px-2 py-1 bg-slate-100 rounded">.csv</span>
             <span className="px-2 py-1 bg-slate-100 rounded">.txt</span>
             <span className="px-2 py-1 bg-slate-100 rounded">.xlsx</span>
+            <span className="px-2 py-1 bg-slate-100 rounded">.xls</span>
             <span className="px-2 py-1 bg-slate-100 rounded">.sav</span>
             <span className="px-2 py-1 bg-slate-100 rounded">.dta</span>
             <span className="px-2 py-1 bg-slate-100 rounded">.json</span>

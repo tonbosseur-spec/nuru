@@ -187,7 +187,7 @@ export const useStore = create<AppState>((set, get) => ({
     const state = get();
     if (!state.currentWorkspaceId) return;
     
-    // Save to localforage
+    // Save to backend/filesystem
     const data: WorkspaceData = {
       id: state.currentWorkspaceId,
       name: state.workspaceName,
@@ -199,13 +199,20 @@ export const useStore = create<AppState>((set, get) => ({
       codeHistory: state.codeHistory
     };
     
-    await localforage.setItem(`workspace_${data.id}`, data);
-    
-    // Update summaries
-    let summaries: WorkspaceSummary[] = await localforage.getItem('workspace_summaries') || [];
-    summaries = summaries.filter(s => s.id !== data.id);
-    summaries.unshift({ id: data.id, name: data.name, lastModified: Date.now() });
-    await localforage.setItem('workspace_summaries', summaries);
+    if (isDesktop()) {
+      await (window as any).pywebview.api.save_workspace(data.id, JSON.stringify(data));
+      let res = await (window as any).pywebview.api.load_summaries();
+      let summaries: WorkspaceSummary[] = res.success ? JSON.parse(res.content) : [];
+      summaries = summaries.filter(s => s.id !== data.id);
+      summaries.unshift({ id: data.id, name: data.name, lastModified: Date.now() });
+      await (window as any).pywebview.api.save_summaries(JSON.stringify(summaries));
+    } else {
+      await localforage.setItem(`workspace_${data.id}`, data);
+      let summaries: WorkspaceSummary[] = await localforage.getItem('workspace_summaries') || [];
+      summaries = summaries.filter(s => s.id !== data.id);
+      summaries.unshift({ id: data.id, name: data.name, lastModified: Date.now() });
+      await localforage.setItem('workspace_summaries', summaries);
+    }
   },
   
   closeWorkspace: () => {
@@ -300,17 +307,33 @@ export const useStore = create<AppState>((set, get) => ({
 
 // Helper to get summaries outside of react
 export const getWorkspaceSummaries = async (): Promise<WorkspaceSummary[]> => {
+  if (isDesktop()) {
+    const res = await (window as any).pywebview.api.load_summaries();
+    return res.success ? JSON.parse(res.content) : [];
+  }
   return await localforage.getItem('workspace_summaries') || [];
 };
 
 export const deleteWorkspace = async (id: string) => {
-  await localforage.removeItem(`workspace_${id}`);
-  let summaries: WorkspaceSummary[] = await localforage.getItem('workspace_summaries') || [];
-  summaries = summaries.filter(s => s.id !== id);
-  await localforage.setItem('workspace_summaries', summaries);
+  if (isDesktop()) {
+    await (window as any).pywebview.api.delete_workspace(id);
+    let res = await (window as any).pywebview.api.load_summaries();
+    let summaries: WorkspaceSummary[] = res.success ? JSON.parse(res.content) : [];
+    summaries = summaries.filter(s => s.id !== id);
+    await (window as any).pywebview.api.save_summaries(JSON.stringify(summaries));
+  } else {
+    await localforage.removeItem(`workspace_${id}`);
+    let summaries: WorkspaceSummary[] = await localforage.getItem('workspace_summaries') || [];
+    summaries = summaries.filter(s => s.id !== id);
+    await localforage.setItem('workspace_summaries', summaries);
+  }
 };
 
 export const getWorkspace = async (id: string): Promise<WorkspaceData | null> => {
+  if (isDesktop()) {
+    const res = await (window as any).pywebview.api.load_workspace(id);
+    return res.success ? JSON.parse(res.content) : null;
+  }
   return await localforage.getItem(`workspace_${id}`);
 };
 

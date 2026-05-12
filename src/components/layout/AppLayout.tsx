@@ -8,7 +8,7 @@ import { DataTranscription } from '../DataTranscription';
 import { AnalysisAssistant } from '../AnalysisAssistant';
 import { Toaster } from '../ui/sonner.tsx';
 import { Button } from '@/components/ui/button';
-import { Home, Edit2, Save, Zap, Sparkles } from 'lucide-react';
+import { Home, Edit2, Save, Zap, Sparkles, FileLineChart, Table2, FolderOpen, TerminalSquare, PieChart, Activity, Download, FileText, Component } from 'lucide-react';
 
 import { DescriptiveArea } from '../areas/DescriptiveArea';
 import { TestsArea } from '../areas/TestsArea';
@@ -134,34 +134,60 @@ export function AppLayout() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Left menu */}
-        <aside className="w-52 border-r bg-white flex flex-col z-0 shrink-0 shadow-sm">
-          <nav className="p-3 space-y-0.5">
-            <button onClick={() => setActiveTab('fichier')} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${activeTab === 'fichier' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Fichier</button>
-            <button onClick={() => setActiveTab('donnees')} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${activeTab === 'donnees' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Données</button>
+        <aside className="w-60 bg-[#f3f3f3] border-r border-[#e5e5e5] flex flex-col z-0 shrink-0">
+          <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
             
-            <div className="py-2 px-3">
-               <div className="h-px bg-slate-100"></div>
+            {/* Group: Espace de travail */}
+            <div>
+              <div className="px-3 mb-1 text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Espace de travail</div>
+              <div className="space-y-0.5">
+                <button onClick={() => setActiveTab('fichier')} className={`w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors ${activeTab === 'fichier' ? 'bg-[#e0e0e0] font-medium text-slate-900 mx-0' : 'text-slate-700 hover:bg-[#ebebeb] mx-0'}`}>
+                  <FolderOpen className="w-4 h-4 mr-2.5 opacity-70" /> Importer
+                </button>
+                <button onClick={() => setActiveTab('donnees')} className={`w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors ${activeTab === 'donnees' ? 'bg-[#e0e0e0] font-medium text-slate-900 mx-0' : 'text-slate-700 hover:bg-[#ebebeb] mx-0'}`}>
+                  <Table2 className="w-4 h-4 mr-2.5 opacity-70" /> Données
+                </button>
+                <button onClick={() => setActiveTab('code')} className={`w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors ${activeTab === 'code' ? 'bg-[#e0e0e0] font-medium text-slate-900 mx-0' : 'text-slate-700 hover:bg-[#ebebeb] mx-0'}`}>
+                  <TerminalSquare className="w-4 h-4 mr-2.5 opacity-70" /> Code source
+                </button>
+                <button onClick={() => setActiveTab('export')} className={`w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors ${activeTab === 'export' ? 'bg-[#e0e0e0] font-medium text-slate-900 mx-0' : 'text-slate-700 hover:bg-[#ebebeb] mx-0'}`}>
+                  <Download className="w-4 h-4 mr-2.5 opacity-70" /> Exporter
+                </button>
+              </div>
             </div>
 
-            <button 
-              onClick={() => setActiveTab('assistant')} 
-              className={`w-full flex items-center px-3 py-2 text-[11px] uppercase tracking-widest rounded-xl transition-all duration-300 ${activeTab === 'assistant' ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold shadow-lg shadow-indigo-100 scale-105' : 'text-indigo-600 bg-indigo-50/50 hover:bg-indigo-100/50 font-bold border border-indigo-100'}`}
-            >
-              <Sparkles className={`w-3.5 h-3.5 mr-2 ${activeTab === 'assistant' ? 'animate-pulse' : ''}`} />
-              Assistant
-            </button>
-
-            <div className="py-2 px-3">
-               <div className="h-px bg-slate-100"></div>
+            {/* Group: Analyses Statistiques */}
+            <div>
+              <div className="px-3 mb-1 text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Analyses</div>
+              <div className="space-y-0.5">
+                <button onClick={() => setActiveTab('descriptives')} className={`w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors ${activeTab === 'descriptives' ? 'bg-[#e0e0e0] font-medium text-slate-900 mx-0' : 'text-slate-700 hover:bg-[#ebebeb] mx-0'}`}>
+                  <FileText className="w-4 h-4 mr-2.5 opacity-70" /> Descriptives
+                </button>
+                <button onClick={() => setActiveTab('tests')} className={`w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors ${activeTab === 'tests' ? 'bg-[#e0e0e0] font-medium text-slate-900 mx-0' : 'text-slate-700 hover:bg-[#ebebeb] mx-0'}`}>
+                  <Activity className="w-4 h-4 mr-2.5 opacity-70" /> Tests d'hypothèses
+                </button>
+                <button onClick={() => setActiveTab('regression')} className={`w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors ${activeTab === 'regression' ? 'bg-[#e0e0e0] font-medium text-slate-900 mx-0' : 'text-slate-700 hover:bg-[#ebebeb] mx-0'}`}>
+                  <FileLineChart className="w-4 h-4 mr-2.5 opacity-70" /> Régressions
+                </button>
+                <button onClick={() => setActiveTab('graphiques')} className={`w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors ${activeTab === 'graphiques' ? 'bg-[#e0e0e0] font-medium text-slate-900 mx-0' : 'text-slate-700 hover:bg-[#ebebeb] mx-0'}`}>
+                  <PieChart className="w-4 h-4 mr-2.5 opacity-70" /> Graphiques
+                </button>
+              </div>
             </div>
 
-            <button onClick={() => setActiveTab('descriptives')} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${activeTab === 'descriptives' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Descriptives</button>
-            <button onClick={() => setActiveTab('tests')} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${activeTab === 'tests' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Tests statistiques</button>
-            <button onClick={() => setActiveTab('regression')} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${activeTab === 'regression' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Régression</button>
-            <button onClick={() => setActiveTab('graphiques')} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${activeTab === 'graphiques' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Graphiques</button>
-            <button onClick={() => setActiveTab('code')} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${activeTab === 'code' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Code Python</button>
-            <button onClick={() => setActiveTab('export')} className={`w-full flex items-center px-3 py-1.5 text-[11px] uppercase tracking-wider rounded-md ${activeTab === 'export' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'text-slate-600 hover:bg-slate-50 font-medium'}`}>Export</button>
-          </nav>
+            {/* Group: IA */}
+            <div>
+              <div className="px-3 mb-1 text-[11px] font-semibold text-indigo-500 uppercase tracking-wide flex items-center">
+                <Sparkles className="w-3 h-3 mr-1" /> Outils AI
+              </div>
+              <div className="space-y-0.5">
+                <button onClick={() => setActiveTab('assistant')} className={`w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors ${activeTab === 'assistant' ? 'bg-[#e0e0e0] font-medium text-slate-900 mx-0' : 'text-slate-700 hover:bg-[#ebebeb] mx-0'}`}>
+                  <Component className="w-4 h-4 mr-2.5 opacity-70" /> Assistant d'analyse
+                </button>
+              </div>
+            </div>
+
+          </div>
         </aside>
 
         {/* Center Content */}

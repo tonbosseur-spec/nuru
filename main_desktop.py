@@ -35,7 +35,56 @@ def get_entrypoint():
 
 class Api:
     def get_user_data_path(self):
-        return os.path.join(os.path.expanduser("~"), "NuruAnalytics")
+        path = os.path.join(os.path.expanduser("~"), "NuruAnalytics")
+        os.makedirs(path, exist_ok=True)
+        return path
+
+    def save_workspace(self, workspace_id, content):
+        path = os.path.join(self.get_user_data_path(), f"workspace_{workspace_id}.json")
+        try:
+            with open(path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            return {"success": True}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def load_workspace(self, workspace_id):
+        path = os.path.join(self.get_user_data_path(), f"workspace_{workspace_id}.json")
+        try:
+            if os.path.exists(path):
+                with open(path, 'r', encoding='utf-8') as f:
+                    return {"success": True, "content": f.read()}
+            return {"success": False, "error": "file not found"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def delete_workspace(self, workspace_id):
+        path = os.path.join(self.get_user_data_path(), f"workspace_{workspace_id}.json")
+        try:
+            if os.path.exists(path):
+                os.remove(path)
+            return {"success": True}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def save_summaries(self, content):
+        path = os.path.join(self.get_user_data_path(), "workspace_summaries.json")
+        try:
+            with open(path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            return {"success": True}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def load_summaries(self):
+        path = os.path.join(self.get_user_data_path(), "workspace_summaries.json")
+        try:
+            if os.path.exists(path):
+                with open(path, 'r', encoding='utf-8') as f:
+                    return {"success": True, "content": f.read()}
+            return {"success": True, "content": "[]"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
 
     def save_file_dialog(self, content, filename):
         """Ouvre une boîte de dialogue pour enregistrer un fichier .nra"""
