@@ -54,5 +54,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['public/favicon.ico'], # Optionnel : mettez votre icone ici
+    # icon=['public/favicon.ico'], # Décommentez après avoir ajouté une icône
 )
