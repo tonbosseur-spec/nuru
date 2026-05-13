@@ -199,7 +199,10 @@ async def execute_code(payload: dict):
     except Exception as e:
         import traceback
         error_msg = f"{str(e)}\n{traceback.format_exc()}"
-        print(f"Erreur d'exécution : {error_msg}", file=sys.stderr)
+        try:
+            print(f"Erreur d'exécution : {error_msg}")
+        except:
+            pass
         return {"error": str(e), "details": error_msg, "success": False}
     finally:
         sys.stdout = old_stdout

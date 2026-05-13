@@ -1,6 +1,11 @@
 # -*- mode: python ; coding: utf-8 -*-
+from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 block_cipher = None
+
+extra_datas = collect_data_files('plotly') + collect_data_files('statsmodels') + collect_data_files('scipy') + collect_data_files('sklearn')
+
+extra_hiddens = collect_submodules('plotly') + collect_submodules('statsmodels') + collect_submodules('scipy') + collect_submodules('sklearn')
 
 a = Analysis(
     ['main_desktop.py'],
@@ -9,7 +14,7 @@ a = Analysis(
     datas=[
         ('dist', 'dist'),
         ('backend', 'backend'),
-    ],
+    ] + extra_datas,
     hiddenimports=[
         'uvicorn.logging',
         'uvicorn.loops',
@@ -42,7 +47,7 @@ a = Analysis(
         'sklearn.neighbors._partition_nodes',
         'sklearn.neighbors._quad_tree',
         'sklearn.tree._utils',
-    ],
+    ] + extra_hiddens,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
