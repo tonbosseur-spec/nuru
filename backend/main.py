@@ -53,24 +53,55 @@ async def load_data(file: UploadFile = File(...)):
     try:
         filename = file.filename.lower()
         if filename.endswith('.csv'):
-            # Use engine='python' and try to avoid StringDtype conversion if pandas 2.0+ is configured for it
-            current_df = pd.read_csv(io.BytesIO(contents))
+            try:
+                text = contents.decode('utf-8-sig', errors='ignore')
+            except:
+                text = contents.decode('latin-1', errors='ignore')
+            
+            # Simple heuristic for separator
+            lines = text.split('\n')[:10]
+            sep_counts = {
+                ';': sum(line.count(';') for line in lines),
+                ',': sum(line.count(',') for line in lines),
+                '\t': sum(line.count('\t') for line in lines)
+            }
+            sep = max(sep_counts, key=sep_counts.get)
+            if sep_counts[sep] == 0:
+                sep = ','
+                
+            decimal = ',' if sep == ';' else '.'
+            
+            try:
+                current_df = pd.read_csv(io.StringIO(text), sep=sep, decimal=decimal)
+            except Exception:
+                current_df = pd.read_csv(io.BytesIO(contents))
         elif filename.endswith(('.xls', '.xlsx')):
             current_df = pd.read_excel(io.BytesIO(contents))
         else:
             print(f"Format non supporté : {file.filename}")
             raise HTTPException(status_code=400, detail="Format non supporté")
         
-        # Normalisation ultra-agressive des types pour éviter les problèmes avec StringDtype de Pandas 2.x
-        # qui cause l'erreur "Cannot interpret StringDtype as a data type" dans numpy/scipy
+        # Normalisation ultra-agressive des types
         for col in current_df.columns:
             # 1. Convertir les types StringDtype (pandas 2+) en object (standard numpy)
             dtype_str = str(current_df[col].dtype).lower()
-            if 'string' in dtype_str or 'bool' in dtype_str:
-                try:
-                    current_df[col] = current_df[col].astype(object)
-                except:
-                    pass
+            if 'string' in dtype_str or 'bool' in dtype_str or current_df[col].dtype == object:
+                # Try to convert to float if it contains mostly numbers with spaces/commas (e.g. "1 000,50")
+                s = current_df[col].dropna().astype(str)
+                if len(s) > 0:
+                    s_clean = s.str.replace(r'\s+', '', regex=True).str.replace(',', '.')
+                    numeric_s = pd.to_numeric(s_clean, errors='coerce')
+                    non_na_count = numeric_s.notna().sum()
+                    
+                    # If more than 80% of non-empty strings are valid numbers, convert the column
+                    if non_na_count >= len(s) * 0.8 and non_na_count > 0:
+                        current_df[col] = numeric_s
+                    else:
+                        # Otherwise just ensure it's standard object
+                        try:
+                            current_df[col] = current_df[col].astype(object)
+                        except:
+                            pass
             
             # 2. Remplacer les types 'Int64' (nullable) par 'float64' ou 'int64' standard
             # car certains calculs numpy ne les supportent pas bien

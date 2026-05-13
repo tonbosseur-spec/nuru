@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useStore, ResultItem } from '@/store';
+import { useStore, ResultItem, isDesktop } from '@/store';
 import { ScrollArea, ScrollBar } from './ui/scroll-area';
-import { Trash2, Code, Copy, ChevronDown, ChevronRight, Library } from 'lucide-react';
+import { Trash2, Code, Copy, ChevronDown, ChevronRight, Library, TerminalSquare, Download } from 'lucide-react';
 import { Button } from './ui/button';
 import Plot from 'react-plotly.js';
 import { toast } from 'sonner';
@@ -33,6 +33,86 @@ export function ResultsArea() {
         navigator.clipboard.writeText(table.innerText);
         toast.success('Tableau copié (format texte)');
       }
+    }
+  };
+
+  const exportSingleResultHTML = async (res: ResultItem) => {
+    try {
+      let content = res.output;
+      let scripts = '';
+      
+      if (content.includes('__PLOTLY_JSON_START__')) {
+          const parts = content.split('__PLOTLY_JSON_START__');
+          content = parts[0];
+          
+          parts.slice(1).forEach((part, chartIdx) => {
+              const [jsonString, ...htmlParts] = part.split('__PLOTLY_JSON_END__');
+              const afterHtml = htmlParts.join('__PLOTLY_JSON_END__');
+              const chartId = `plotly-chart-${res.id}-${chartIdx}`;
+              
+              content += `<div id="${chartId}" style="width:100%; max-width:800px; height: 500px; margin: 20px auto;"></div>`;
+              if (afterHtml && afterHtml.trim()) {
+                  content += afterHtml;
+              }
+              
+              scripts += `
+              <script>
+                  window.onload = function() {
+                      var data = ${jsonString};
+                      var layout = data.layout || {};
+                      layout.autosize = true;
+                      Plotly.newPlot('${chartId}', data.data, layout, {responsive: true});
+                  };
+              </script>
+              `;
+          });
+      }
+
+      const htmlContent = `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>${res.title}</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; background: white; color: #1e293b; max-width: 900px; margin: 0 auto; }
+        h1 { color: #2563eb; font-size: 1.5em; margin-bottom: 2em; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5em; }
+        pre { background: #f8fafc; color: #334155; border: 1px solid #e2e8f0; padding: 15px; font-family: 'Courier New', Courier, monospace; font-size: 0.9em; border-radius: 6px; overflow-x: auto; }
+        table { border-collapse: collapse; margin-bottom: 20px; width: 100%; border: 1px solid #e2e8f0; font-size: 0.95em; }
+        th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; }
+        th { background: #f8fafc; font-weight: 600; }
+    </style>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>${res.title}</h1>
+    <div>${content}</div>
+    ${scripts}
+</body>
+</html>`;
+
+      const filename = `${res.title.replace(/[^a-zA-Z0-9]/g, '_')}_export.html`;
+
+      if (isDesktop()) {
+        const result = await (window as any).pywebview.api.save_file_dialog(htmlContent, filename);
+        if (result.success) {
+          toast.success(`Enregistré : ${result.path}`);
+        }
+        return;
+      }
+
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success("Résultat exporté (HTML)");
+    } catch (err: any) {
+      toast.error("Erreur d'export: " + err.message);
     }
   };
 
@@ -111,8 +191,11 @@ export function ResultsArea() {
 
   if (results.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center text-slate-400 italic bg-white p-8">
-        <p>Run an analysis to see results</p>
+      <div className="flex-1 flex flex-col items-center justify-center text-slate-400 italic bg-white p-8">
+        <div className="w-16 h-16 mb-4 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
+           <TerminalSquare className="w-6 h-6 text-slate-300" />
+        </div>
+        <p>Lancez une analyse ou exécutez du code pour voir les résultats ici.</p>
       </div>
     );
   }
@@ -120,9 +203,9 @@ export function ResultsArea() {
   return (
     <div className="flex flex-col flex-1 h-full min-h-0 bg-white">
       <div className="px-4 py-3 border-b flex justify-between items-center bg-slate-50 shrink-0">
-        <h3 className="font-semibold text-slate-700">Results Output</h3>
+        <h3 className="font-semibold text-slate-700">Résultats des analyses</h3>
         <Button variant="ghost" size="sm" onClick={clearResults} className="h-8 text-slate-500 hover:text-red-600">
-          <Trash2 className="w-4 h-4 mr-2" /> Clear All
+          <Trash2 className="w-4 h-4 mr-2" /> Tout effacer
         </Button>
       </div>
       <ScrollArea className="flex-1 min-h-0 w-full overflow-hidden">
@@ -134,6 +217,9 @@ export function ResultsArea() {
                  <div className="bg-slate-50 px-4 py-3 font-semibold text-slate-700 border-b flex justify-between items-center sticky left-0 w-full">
                     <span>{res.title}</span>
                     <div className="flex items-center space-x-2">
+                      <Button variant="ghost" size="sm" onClick={() => exportSingleResultHTML(res)} className="h-7 text-[10px] uppercase font-bold text-slate-500 hover:text-blue-600">
+                        <Download className="w-3.5 h-3.5 mr-1" /> Exporter
+                      </Button>
                       <Button variant="ghost" size="sm" onClick={copyTable} className="h-7 text-[10px] uppercase font-bold text-slate-500 hover:text-blue-600" title="Copier les tableaux">
                         <Copy className="w-3.5 h-3.5 mr-1" /> Copier Table
                       </Button>

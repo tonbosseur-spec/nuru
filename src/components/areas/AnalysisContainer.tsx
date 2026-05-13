@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '../ui/card';
 import { ScrollArea, ScrollBar } from '../ui/scroll-area';
-import { ResultsArea } from '../ResultsArea';
 import { LucideIcon } from 'lucide-react';
 
 export interface CategorySpec {
@@ -24,49 +23,39 @@ export function AnalysisContainer({ categories }: Props) {
   if (!activeSpec) return null;
 
   return (
-    <div className="flex flex-col xl:flex-row gap-6 flex-1 min-h-0 p-3 md:p-5 overflow-y-auto xl:overflow-hidden">
-      {/* Left side: Navigation & Config */}
-      <div className="w-full xl:w-[420px] shrink-0 flex flex-col md:flex-row xl:flex-col gap-4 h-auto xl:h-full">
-        <div className="w-full md:w-44 xl:w-full bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col shadow-sm shrink-0 h-auto md:h-auto xl:h-auto min-h-[200px]">
-          <div className="p-2.5 bg-slate-50 border-b font-bold text-[10px] uppercase tracking-wider text-slate-400">Analyses</div>
-          <ScrollArea className="flex-1 xl:max-h-none max-h-[300px]">
-            <div className="flex flex-col p-1.5 space-y-0.5">
-              {categories.map(cat => (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveCategory(cat.id)}
-                  className={`flex items-center space-x-2.5 px-3 py-1.5 rounded-md text-[12px] transition-all duration-200 group
-                    ${activeCategory === cat.id 
-                      ? 'bg-blue-600 text-white font-semibold shadow-sm' 
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent hover:border-slate-100'}`}
-                >
-                  <cat.icon className={`w-3.5 h-3.5 ${activeCategory === cat.id ? 'text-white' : cat.color + ' opacity-80'}`} />
-                  <span className="truncate">{cat.label}</span>
-                </button>
-              ))}
-            </div>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
-        </div>
-
-        <div className="flex-1 flex flex-col min-h-0">
-           <Card className="border-slate-200 shadow-sm h-full xl:h-full rounded-xl overflow-hidden flex flex-col bg-white min-h-[300px]">
-              <div className="p-2.5 bg-slate-50 border-b font-bold text-[10px] uppercase tracking-wider text-slate-400">
-                Configuration
-              </div>
-              <ScrollArea className="flex-1 max-h-[400px] xl:max-h-none w-full">
-                <CardContent className="p-4">
-                  {activeSpec.component}
-                </CardContent>
-                <ScrollBar orientation="horizontal" />
-              </ScrollArea>
-           </Card>
+    <div className="flex flex-col md:flex-row gap-6 p-4 md:p-6 w-full max-w-5xl mx-auto overflow-y-auto">
+      {/* Left side: Navigation */}
+      <div className="w-full md:w-64 shrink-0 flex flex-col gap-4">
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col shadow-sm">
+          <div className="p-3 bg-slate-50 border-b font-bold text-xs uppercase tracking-wider text-slate-500">Sous-catégories</div>
+          <div className="flex flex-col p-2 space-y-1">
+            {categories.map(cat => (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id)}
+                className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 group
+                  ${activeCategory === cat.id 
+                    ? 'bg-indigo-600 text-white font-medium shadow-md' 
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent'}`}
+              >
+                <cat.icon className={`w-4 h-4 ${activeCategory === cat.id ? 'text-indigo-200' : cat.color}`} />
+                <span className="truncate">{cat.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Right side: Results */}
-      <div className="flex-1 min-h-[400px] xl:h-full bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
-         <ResultsArea />
+      {/* Right side: Config */}
+      <div className="flex-1 min-w-0">
+         <Card className="border-slate-200 shadow-sm rounded-xl overflow-hidden flex flex-col bg-white">
+            <div className="p-3 bg-slate-50 border-b font-bold text-xs uppercase tracking-wider text-slate-500">
+              Configuration de {activeSpec.label}
+            </div>
+            <CardContent className="p-6">
+              {activeSpec.component}
+            </CardContent>
+         </Card>
       </div>
     </div>
   );

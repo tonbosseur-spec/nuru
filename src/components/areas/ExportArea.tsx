@@ -1,5 +1,5 @@
 import React from 'react';
-import { useStore, getWorkspace } from '@/store';
+import { useStore, getWorkspace, isDesktop } from '@/store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Download, FileText, Database, Package } from 'lucide-react';
@@ -31,14 +31,26 @@ base64.b64encode(json_data.encode('utf-8')).decode('utf-8')
       let base64Data = res.output.trim().replace(/^'|'$/g, '');
       if (res.result) base64Data = res.result;
 
-      const blob = new Blob([Uint8Array.from(atob(base64Data), c => c.charCodeAt(0))], { 
+      const filename = `${datasetName || 'donnees'}_export.${format}`;
+      const bytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+
+      if (isDesktop()) {
+        const textContent = new TextDecoder().decode(bytes);
+        const res = await (window as any).pywebview.api.save_file_dialog(textContent, filename);
+        if (res.success) {
+          toast.success(`Enregistré : ${res.path}`);
+        }
+        return;
+      }
+
+      const blob = new Blob([bytes], { 
         type: format === 'csv' ? 'text/csv' : 'application/json' 
       });
       
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${datasetName}_export.${format}`;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -56,11 +68,22 @@ base64.b64encode(json_data.encode('utf-8')).decode('utf-8')
       const data = await getWorkspace(currentWorkspaceId);
       if (!data) throw new Error("Données introuvables");
       
-      const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+      const content = JSON.stringify(data);
+      const filename = `${workspaceName || 'nuru_analytics_project'}.nra`;
+
+      if (isDesktop()) {
+        const res = await (window as any).pywebview.api.save_file_dialog(content, filename);
+        if (res.success) {
+          toast.success(`Enregistré : ${res.path}`);
+        }
+        return;
+      }
+      
+      const blob = new Blob([content], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${workspaceName || 'nuru_analytics_project'}.nra`;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -182,11 +205,22 @@ base64.b64encode(json_data.encode('utf-8')).decode('utf-8')
 </html>
     `;
 
+    const filename = `Rapport_${workspaceName.replace(/\s+/g, '_')}.html`;
+
+    if (isDesktop()) {
+      const res = (window as any).pywebview.api.save_file_dialog(htmlContent, filename).then((res: any) => {
+        if (res.success) {
+          toast.success(`Enregistré : ${res.path}`);
+        }
+      });
+      return;
+    }
+
     const blob = new Blob([htmlContent], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Rapport_${workspaceName.replace(/\s+/g, '_')}.html`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

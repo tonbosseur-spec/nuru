@@ -80,7 +80,7 @@ interface AppState {
   importWorkspaceFromFile: () => Promise<void>;
 }
 
-const isDesktop = () => {
+export const isDesktop = () => {
   return typeof (window as any).pywebview !== 'undefined';
 };
 
@@ -137,7 +137,8 @@ export const useStore = create<AppState>((set, get) => ({
   addResult: (result) => {
     set((state) => ({ 
       results: [result, ...state.results],
-      codeHistory: [...state.codeHistory, result.code]
+      codeHistory: [...state.codeHistory, result.code],
+      activeTab: 'resultats'
     }));
     get().saveCurrentWorkspace();
   },

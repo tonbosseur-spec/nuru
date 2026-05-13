@@ -16,6 +16,7 @@ import { RegressionArea } from '../areas/RegressionArea';
 import { ChartsArea } from '../areas/ChartsArea';
 import { PythonCodeViewer } from '../areas/PythonCodeViewer';
 import { ExportArea } from '../areas/ExportArea';
+import { ResultsArea } from '../ResultsArea';
 
 export function AppLayout() {
   const { 
@@ -61,6 +62,7 @@ export function AppLayout() {
       case 'tests': return <TestsArea />;
       case 'regression': return <RegressionArea />;
       case 'graphiques': return <ChartsArea />;
+      case 'resultats': return <div className="p-6 h-full overflow-hidden flex flex-col"><div className="flex-1 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col"><ResultsArea /></div></div>;
       case 'code': return <PythonCodeViewer />;
       case 'export': return <ExportArea />;
       default: return null;
@@ -150,9 +152,6 @@ export function AppLayout() {
                 <button onClick={() => setActiveTab('code')} className={`w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors ${activeTab === 'code' ? 'bg-[#e0e0e0] font-medium text-slate-900 mx-0' : 'text-slate-700 hover:bg-[#ebebeb] mx-0'}`}>
                   <TerminalSquare className="w-4 h-4 mr-2.5 opacity-70" /> Code source
                 </button>
-                <button onClick={() => setActiveTab('export')} className={`w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors ${activeTab === 'export' ? 'bg-[#e0e0e0] font-medium text-slate-900 mx-0' : 'text-slate-700 hover:bg-[#ebebeb] mx-0'}`}>
-                  <Download className="w-4 h-4 mr-2.5 opacity-70" /> Exporter
-                </button>
               </div>
             </div>
 
@@ -171,6 +170,21 @@ export function AppLayout() {
                 </button>
                 <button onClick={() => setActiveTab('graphiques')} className={`w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors ${activeTab === 'graphiques' ? 'bg-[#e0e0e0] font-medium text-slate-900 mx-0' : 'text-slate-700 hover:bg-[#ebebeb] mx-0'}`}>
                   <PieChart className="w-4 h-4 mr-2.5 opacity-70" /> Graphiques
+                </button>
+              </div>
+            </div>
+
+            {/* Group: Sorties */}
+            <div>
+              <div className="px-3 mb-1 text-[11px] font-semibold text-slate-500 uppercase tracking-wide flex items-center">
+                Sorties
+              </div>
+              <div className="space-y-0.5">
+                <button onClick={() => setActiveTab('resultats')} className={`w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors ${activeTab === 'resultats' ? 'bg-[#e0e0e0] font-medium text-slate-900 mx-0' : 'text-slate-700 hover:bg-[#ebebeb] mx-0'}`}>
+                  <TerminalSquare className="w-4 h-4 mr-2.5 opacity-70" /> Résultats
+                </button>
+                <button onClick={() => setActiveTab('export')} className={`w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors ${activeTab === 'export' ? 'bg-[#e0e0e0] font-medium text-slate-900 mx-0' : 'text-slate-700 hover:bg-[#ebebeb] mx-0'}`}>
+                  <Download className="w-4 h-4 mr-2.5 opacity-70" /> Exporter
                 </button>
               </div>
             </div>
