@@ -45,7 +45,7 @@ export function VariableSelector({ variables, selected, onSelect, label = "Chois
     <div className="space-y-2">
       <label className="text-xs font-bold uppercase tracking-wider text-slate-400 block">{label}</label>
       <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm flex flex-col h-[280px]">
-        <div className="p-2 border-b border-slate-100 bg-slate-50/50 flex items-center space-x-2">
+        <div className="p-2 border-b border-slate-100 bg-slate-50/50 flex items-center space-x-2 shrink-0">
           <Search className="w-3.5 h-3.5 text-slate-400" />
           <input 
             className="bg-transparent border-none outline-none text-sm w-full placeholder:text-slate-400"
@@ -54,7 +54,7 @@ export function VariableSelector({ variables, selected, onSelect, label = "Chois
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 min-h-0">
           <div className="p-1.5 space-y-0.5">
             {filtered.map(v => (
               <button

@@ -168,9 +168,11 @@ async def descriptive_stats(column: str):
 async def execute_code(payload: dict):
     df = get_active_df()
     code = payload.get("code", "")
-    # Simulation sécurisée d'exécution (pour démo technique)
-    # Dans une vraie app, on utiliserait un environnement sandbox ou on parserait le code
+    
+    import sys
     output = io.StringIO()
+    old_stdout = sys.stdout
+    sys.stdout = output
     try:
         # On injecte le dataframe actuel dans le namespace
         namespace = {"df": df, "pd": pd, "np": np, "stats": stats, "plt": None}
@@ -191,8 +193,10 @@ async def execute_code(payload: dict):
     except Exception as e:
         import traceback
         error_msg = f"{str(e)}\n{traceback.format_exc()}"
-        print(f"Erreur d'exécution : {error_msg}")
+        print(f"Erreur d'exécution : {error_msg}", file=sys.stderr)
         return {"error": str(e), "details": error_msg, "success": False}
+    finally:
+        sys.stdout = old_stdout
 
 if __name__ == "__main__":
     import sys

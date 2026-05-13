@@ -73,7 +73,6 @@ class PythonEngine {
     }
   }
 
-  // Méthode générique pour exécuter du code
   async runCode(code: string): Promise<{output: string, result: any, error?: string}> {
     await this.init();
     try {
@@ -98,7 +97,7 @@ class PythonEngine {
     const response = await fetch(`${API_URL}/prepare/rename?old_name=${encodeURIComponent(oldName)}&new_name=${encodeURIComponent(newName)}`, {
       method: 'POST'
     });
-    return response.json();
+    return await response.json();
   }
 
   async categorizeColumn(column: string, bins: number, newName?: string) {
@@ -106,7 +105,7 @@ class PythonEngine {
     let url = `${API_URL}/prepare/categorize?column=${encodeURIComponent(column)}&bins=${bins}`;
     if (newName) url += `&new_name=${encodeURIComponent(newName)}`;
     const response = await fetch(url, { method: 'POST' });
-    return response.json();
+    return await response.json();
   }
 
   async checkFilter(condition: string) {
@@ -114,7 +113,7 @@ class PythonEngine {
     const response = await fetch(`${API_URL}/prepare/filter?condition=${encodeURIComponent(condition)}`, {
       method: 'POST'
     });
-    return response.json();
+    return await response.json();
   }
 }
 

@@ -89,7 +89,7 @@ const getStoredUser = () => {
     return { firstName: 'Utilisateur', lastName: 'Local' };
   }
   const stored = localStorage.getItem('nuru_analytics_user');
-  return stored ? JSON.parse(stored) : null;
+  return stored ? JSON.parse(stored) : { firstName: 'Utilisateur', lastName: 'Local' };
 };
 
 export const useStore = create<AppState>((set, get) => ({
