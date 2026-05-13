@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useStore, getWorkspaceSummaries, deleteWorkspace, getWorkspace, WorkspaceSummary } from '@/store';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '../ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { FolderOpen, Plus, Zap, Trash2, UploadCloud, Beaker, Clock, FileText, ChevronRight, LayoutGrid } from 'lucide-react';
 import { engine } from '@/lib/pythonEngine';
 import { toast } from 'sonner';

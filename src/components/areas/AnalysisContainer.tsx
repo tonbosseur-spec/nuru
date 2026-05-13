@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Card, CardContent } from '../ui/card';
+import { ScrollArea, ScrollBar } from '../ui/scroll-area';
 import { ResultsArea } from '../ResultsArea';
 import { LucideIcon } from 'lucide-react';
 

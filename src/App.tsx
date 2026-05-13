@@ -8,7 +8,7 @@ import { AppLayout } from './components/layout/AppLayout';
 import { Onboarding } from './components/auth/Onboarding';
 import { WelcomeScreen } from './components/home/WelcomeScreen';
 
-import { TooltipProvider } from '@/components/ui/tooltip';
+import { TooltipProvider } from './components/ui/tooltip';
 
 export default function App() {
   const { user, currentWorkspaceId } = useStore();

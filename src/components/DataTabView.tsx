@@ -17,7 +17,7 @@ import {
   Grid3X3,
   Calculator
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from './ui/button';
 import { toast } from 'sonner';
 import { TableVirtuoso } from 'react-virtuoso';
 

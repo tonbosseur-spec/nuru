@@ -6,8 +6,8 @@ import { DataImport } from '../DataImport';
 import { DataTabView } from '../DataTabView';
 import { DataTranscription } from '../DataTranscription';
 import { AnalysisAssistant } from '../AnalysisAssistant';
-import { Toaster } from 'sonner';
-import { Button } from '@/components/ui/button';
+import { Toaster } from '../ui/sonner';
+import { Button } from '../ui/button';
 import { Home, Edit2, Save, Zap, Sparkles, FileLineChart, Table2, FolderOpen, TerminalSquare, PieChart, Activity, Download, FileText, Component } from 'lucide-react';
 
 import { DescriptiveArea } from '../areas/DescriptiveArea';

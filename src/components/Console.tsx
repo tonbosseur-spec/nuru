@@ -1,8 +1,8 @@
 import React, { useRef, useEffect } from 'react';
 import { useStore } from '@/store';
 import { Terminal, Copy } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Button } from '@/components/ui/button';
+import { ScrollArea } from './ui/scroll-area';
+import { Button } from './ui/button';
 import { toast } from 'sonner';
 
 export function Console() {

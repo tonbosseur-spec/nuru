@@ -1,6 +1,6 @@
 import React from 'react';
 import { useStore } from '@/store';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea } from './ui/scroll-area';
 import { Hash, Type, HelpCircle } from 'lucide-react';
 
 export function VariablePanel() {

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useStore } from '@/store';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import { Zap, LayoutDashboard, Globe, ShieldCheck, Activity } from 'lucide-react';
 import { motion } from 'motion/react';
 

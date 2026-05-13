@@ -8,15 +8,15 @@ import {
   ChevronRight,
   HelpCircle
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 import { 
   Tooltip, 
   TooltipContent, 
   TooltipProvider, 
   TooltipTrigger 
-} from '@/components/ui/tooltip';
-import { ScrollArea } from '@/components/ui/scroll-area';
+} from '../ui/tooltip';
+import { ScrollArea } from '../ui/scroll-area';
 
 interface Variable {
   name: string;

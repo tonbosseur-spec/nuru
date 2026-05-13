@@ -1,8 +1,8 @@
 import React from 'react';
 import { useStore } from '@/store';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { ScrollArea, ScrollBar } from '../ui/scroll-area';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
 import { Copy, Download } from 'lucide-react';
 import { toast } from 'sonner';
 

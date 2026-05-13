@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '@/store';
 import { engine } from '@/lib/pythonEngine';
-import { Button } from '@/components/ui/button';
+import { Button } from '../ui/button';
 import { toast } from 'sonner';
 
 import { VariableSelector, TestSelector } from './AnalysisUI';
