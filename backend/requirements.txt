@@ -6,6 +6,7 @@ scipy
 statsmodels
 scikit-learn
 matplotlib
+plotly
 openpyxl
 pyinstaller
 pywebview

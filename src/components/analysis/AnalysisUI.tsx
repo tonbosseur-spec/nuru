@@ -17,6 +17,7 @@ import {
   TooltipTrigger 
 } from '../ui/tooltip';
 import { ScrollArea } from '../ui/scroll-area';
+import { Virtuoso } from 'react-virtuoso';
 
 interface Variable {
   name: string;
@@ -54,33 +55,38 @@ export function VariableSelector({ variables, selected, onSelect, label = "Chois
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <ScrollArea className="flex-1 min-h-0">
-          <div className="p-1.5 space-y-0.5">
-            {filtered.map(v => (
-              <button
-                key={v.name}
-                onClick={() => onSelect(v.name)}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all group
-                  ${isSelected(v.name) 
-                    ? 'bg-indigo-600 text-white font-medium shadow-md' 
-                    : 'text-slate-600 hover:bg-indigo-50 hover:text-indigo-700'}`}
-              >
-                <div className="flex items-center space-x-3 overflow-hidden">
-                  {v.type === 'numeric' ? (
-                    <Hash className={`w-3.5 h-3.5 shrink-0 ${isSelected(v.name) ? 'text-indigo-200' : 'text-blue-400'}`} />
-                  ) : (
-                    <Type className={`w-3.5 h-3.5 shrink-0 ${isSelected(v.name) ? 'text-indigo-200' : 'text-amber-400'}`} />
-                  )}
-                  <span className="truncate">{v.name}</span>
+        <div className="flex-1 min-h-0 relative">
+          {filtered.length === 0 ? (
+            <div className="text-center py-8 text-slate-400 text-xs italic">Aucune variable trouvée</div>
+          ) : (
+            <Virtuoso
+              data={filtered}
+              style={{ height: '100%', width: '100%' }}
+              className="custom-scrollbar p-1.5"
+              itemContent={(index, v) => (
+                <div className="pb-1" key={v.name}>
+                  <button
+                    onClick={() => onSelect(v.name)}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all group
+                      ${isSelected(v.name) 
+                        ? 'bg-indigo-600 text-white font-medium shadow-md' 
+                        : 'text-slate-600 hover:bg-indigo-50 hover:text-indigo-700'}`}
+                  >
+                    <div className="flex items-center space-x-3 overflow-hidden">
+                      {v.type === 'numeric' ? (
+                        <Hash className={`w-3.5 h-3.5 shrink-0 ${isSelected(v.name) ? 'text-indigo-200' : 'text-blue-400'}`} />
+                      ) : (
+                        <Type className={`w-3.5 h-3.5 shrink-0 ${isSelected(v.name) ? 'text-indigo-200' : 'text-amber-400'}`} />
+                      )}
+                      <span className="truncate">{v.name}</span>
+                    </div>
+                    {isSelected(v.name) && <Check className="w-4 h-4 text-white shrink-0" />}
+                  </button>
                 </div>
-                {isSelected(v.name) && <Check className="w-4 h-4 text-white shrink-0" />}
-              </button>
-            ))}
-            {filtered.length === 0 && (
-              <div className="text-center py-8 text-slate-400 text-xs italic">Aucune variable trouvée</div>
-            )}
-          </div>
-        </ScrollArea>
+              )}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
@@ -107,52 +113,58 @@ export function TestSelector({ options, selected, onToggle, label = "Tests à ef
   return (
     <div className="space-y-2">
       <label className="text-xs font-bold uppercase tracking-wider text-slate-400 block">{label}</label>
-      <div className="space-y-1.5">
-        {options.map(option => {
-          const isActive = isSelected(option.id);
-          return (
-            <div 
-              key={option.id}
-              className={`relative rounded-xl border transition-all overflow-hidden group cursor-pointer
-                ${isActive 
-                  ? 'border-indigo-200 bg-indigo-50/50 shadow-sm ring-1 ring-indigo-100' 
-                  : 'border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50'}`}
-              onClick={() => onToggle(option.id)}
-            >
-              <div className="p-3 flex items-start space-x-3">
-                <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0
-                  ${isActive ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300 bg-white'}`}>
-                  {isActive && <Check className="w-3 h-3 text-white" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <span className={`text-sm font-semibold transition-colors ${isActive ? 'text-indigo-900' : 'text-slate-700'}`}>
-                      {option.label}
-                    </span>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger 
-                          className="cursor-pointer text-slate-400 hover:text-indigo-500 transition-colors p-1 rounded-full hover:bg-indigo-100/50"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Info className="w-3.5 h-3.5" />
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-[240px] text-xs p-3">
+      <div className="border border-slate-200 rounded-xl bg-slate-50/20 overflow-hidden" style={{ height: Math.min(Math.max(options.length * 65, 100), 400) }}>
+        <Virtuoso
+          data={options}
+          className="h-full w-full custom-scrollbar"
+          itemContent={(index, option) => {
+            const isActive = isSelected(option.id);
+            return (
+              <div className="p-1">
+                <div 
+                  key={option.id}
+                  className={`relative rounded-xl border transition-all overflow-hidden group cursor-pointer
+                    ${isActive 
+                      ? 'border-indigo-200 bg-indigo-50/50 shadow-sm ring-1 ring-indigo-100' 
+                      : 'border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50'}`}
+                  onClick={() => onToggle(option.id)}
+                >
+                  <div className="p-3 flex items-start space-x-3">
+                    <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0
+                      ${isActive ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300 bg-white'}`}>
+                      {isActive && <Check className="w-3 h-3 text-white" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <span className={`text-sm font-semibold transition-colors ${isActive ? 'text-indigo-900' : 'text-slate-700'}`}>
+                          {option.label}
+                        </span>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger 
+                              className="cursor-pointer text-slate-400 hover:text-indigo-500 transition-colors p-1 rounded-full hover:bg-indigo-100/50"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Info className="w-3.5 h-3.5" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-[240px] text-xs p-3">
+                              {option.description}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      {(isActive || (!allowMultiple && isSelected(option.id))) && (
+                        <p className="text-[11px] text-indigo-700 mt-1 leading-relaxed animate-in fade-in slide-in-from-top-1 duration-300">
                           {option.description}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  {(isActive || (!allowMultiple && isSelected(option.id))) && (
-                    <p className="text-[11px] text-indigo-700 mt-1 leading-relaxed animate-in fade-in slide-in-from-top-1 duration-300">
-                      {option.description}
-                    </p>
-                  )}
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          }}
+        />
       </div>
     </div>
   );

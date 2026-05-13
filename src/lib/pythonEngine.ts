@@ -83,7 +83,7 @@ class PythonEngine {
       });
       const data = await response.json();
       return { 
-        output: data.output || "", 
+        output: (data.error ? `Erreur: ${data.error}\n${data.details || ''}\n\n` : "") + (data.output || ""), 
         result: data.results || null, 
         error: data.error 
       };
