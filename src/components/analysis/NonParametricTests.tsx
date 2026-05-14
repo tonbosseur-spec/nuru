@@ -107,7 +107,7 @@ print("</div>")
           allowMultiple={false}
         />
 
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <VariableSelector 
             variables={columns.filter(c => c.type === 'numeric')}
             selected={var1}
@@ -123,13 +123,13 @@ print("</div>")
         </div>
       </div>
       
-      <div className="pt-4 border-t border-slate-100">
+      <div className="sticky bottom-0 pb-2 bg-slate-50/80 backdrop-blur-sm pt-4 mt-2 border-t border-slate-100 flex justify-end">
         <Button 
           onClick={runAnalysis} 
           disabled={!isEngineReady || isRunning || !var1 || !var2} 
-          className="w-full bg-indigo-600 hover:bg-indigo-700 h-11 text-sm font-semibold shadow-lg shadow-indigo-100 transition-all active:scale-[0.98]"
+          className="min-w-[200px] bg-indigo-600 hover:bg-indigo-700 h-11 text-sm font-semibold shadow-lg shadow-indigo-100 transition-all active:scale-[0.98]"
         >
-          {isRunning ? 'Calcul en cours...' : 'Lancer le Test'}
+          {isRunning ? 'Calcul en cours...' : 'Lancer l\'analyse'}
         </Button>
       </div>
     </div>

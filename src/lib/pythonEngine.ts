@@ -115,6 +115,30 @@ class PythonEngine {
     });
     return await response.json();
   }
+
+  async commitFilter() {
+    await this.init();
+    const response = await fetch(`${API_URL}/prepare/commit_filter`, {
+      method: 'POST'
+    });
+    return await response.json();
+  }
+
+  async updateCell(rowIndex: number, column: string, value: string) {
+    await this.init();
+    const response = await fetch(`${API_URL}/prepare/update_cell?row_index=${rowIndex}&column=${encodeURIComponent(column)}&value=${encodeURIComponent(value)}`, {
+      method: 'POST'
+    });
+    return await response.json();
+  }
+
+  async addCalculatedColumn(newName: string, expression: string) {
+    await this.init();
+    const response = await fetch(`${API_URL}/prepare/calculate?new_name=${encodeURIComponent(newName)}&expression=${encodeURIComponent(expression)}`, {
+      method: 'POST'
+    });
+    return await response.json();
+  }
 }
 
 export const engine = new PythonEngine();

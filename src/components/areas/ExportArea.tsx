@@ -38,7 +38,18 @@ base64.b64encode(json_data.encode('utf-8')).decode('utf-8')
         const textContent = new TextDecoder().decode(bytes);
         const res = await (window as any).pywebview.api.save_file_dialog(textContent, filename);
         if (res.success) {
-          toast.success(`Enregistré : ${res.path}`);
+          toast.success(`Enregistré : ${res.path}`, {
+            action: {
+              label: 'Ouvrir',
+              onClick: () => (window as any).pywebview.api.open_file(res.path)
+            },
+            cancel: {
+              label: 'Dossier',
+              onClick: () => (window as any).pywebview.api.open_folder(res.path)
+            }
+          });
+        } else if (res.error && res.error !== 'Cancelled') {
+          toast.error("Erreur lors de l'enregistrement: " + res.error);
         }
         return;
       }
@@ -74,7 +85,14 @@ base64.b64encode(json_data.encode('utf-8')).decode('utf-8')
       if (isDesktop()) {
         const res = await (window as any).pywebview.api.save_file_dialog(content, filename);
         if (res.success) {
-          toast.success(`Enregistré : ${res.path}`);
+          toast.success(`Enregistré : ${res.path}`, {
+            action: {
+              label: 'Ouvrir',
+              onClick: () => (window as any).pywebview.api.open_folder(res.path) // Pour un .nra, ouvrir le dossier est plus pertinent
+            }
+          });
+        } else if (res.error && res.error !== 'Cancelled') {
+          toast.error("Erreur lors de l'enregistrement: " + res.error);
         }
         return;
       }
@@ -208,9 +226,20 @@ base64.b64encode(json_data.encode('utf-8')).decode('utf-8')
     const filename = `Rapport_${workspaceName.replace(/\s+/g, '_')}.html`;
 
     if (isDesktop()) {
-      const res = (window as any).pywebview.api.save_file_dialog(htmlContent, filename).then((res: any) => {
+      (window as any).pywebview.api.save_file_dialog(htmlContent, filename).then((res: any) => {
         if (res.success) {
-          toast.success(`Enregistré : ${res.path}`);
+          toast.success(`Enregistré : ${res.path}`, {
+            action: {
+              label: 'Ouvrir',
+              onClick: () => (window as any).pywebview.api.open_file(res.path)
+            },
+            cancel: {
+              label: 'Dossier',
+              onClick: () => (window as any).pywebview.api.open_folder(res.path)
+            }
+          });
+        } else if (res.error && res.error !== 'Cancelled') {
+          toast.error("Erreur d'export: " + res.error);
         }
       });
       return;

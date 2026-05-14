@@ -87,8 +87,26 @@ class Api:
             return {"success": False, "error": str(e)}
 
     def save_file_dialog(self, content, filename):
-        """Ouvre une boîte de dialogue pour enregistrer un fichier .nra"""
-        result = window.create_file_dialog(webview.SAVE_DIALOG, directory=os.path.expanduser("~"), save_filename=filename)
+        """Ouvre une boîte de dialogue pour enregistrer un fichier"""
+        # Déterminer les types de fichiers
+        ext = os.path.splitext(filename)[1].lower()
+        if ext == '.nra':
+            file_types = ('Nuru Workspace (*.nra)', 'All files (*.*)')
+        elif ext == '.html':
+            file_types = ('HTML Report (*.html)', 'All files (*.*)')
+        elif ext == '.csv':
+            file_types = ('CSV Data (*.csv)', 'All files (*.*)')
+        elif ext == '.json':
+            file_types = ('JSON Data (*.json)', 'All files (*.*)')
+        else:
+            file_types = ('All files (*.*)', '*.*')
+
+        result = window.create_file_dialog(webview.SAVE_DIALOG, directory=os.path.expanduser("~"), save_filename=filename, file_types=file_types)
+        
+        # Sur certaines plateformes, result peut être une liste [path]
+        if isinstance(result, list):
+            result = result[0] if len(result) > 0 else None
+
         if result:
             try:
                 with open(result, 'w', encoding='utf-8') as f:
@@ -97,6 +115,44 @@ class Api:
             except Exception as e:
                 return {"success": False, "error": str(e)}
         return {"success": False, "error": "Cancelled"}
+
+    def open_file(self, path):
+        """Ouvre un fichier avec l'application par défaut du système"""
+        try:
+            if not os.path.exists(path):
+                return {"success": False, "error": "Le fichier n'existe pas"}
+            
+            if sys.platform == 'win32':
+                os.startfile(path)
+            elif sys.platform == 'darwin':
+                import subprocess
+                subprocess.call(['open', path])
+            else:
+                import subprocess
+                subprocess.call(['xdg-open', path])
+            return {"success": True}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def open_folder(self, path):
+        """Ouvre le dossier contenant le fichier et le sélectionne si possible"""
+        try:
+            folder = os.path.dirname(path)
+            if not os.path.exists(folder):
+                return {"success": False, "error": "Le dossier n'existe pas"}
+
+            if sys.platform == 'win32':
+                import subprocess
+                subprocess.run(['explorer', '/select,', os.path.normpath(path)])
+            elif sys.platform == 'darwin':
+                import subprocess
+                subprocess.call(['open', '-R', path])
+            else:
+                import subprocess
+                subprocess.call(['xdg-open', folder])
+            return {"success": True}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
 
     def open_file_dialog(self):
         """Ouvre une boîte de dialogue pour charger un fichier .nra"""

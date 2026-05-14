@@ -178,80 +178,69 @@ print("__PLOTLY_JSON_START__" + pio.to_json(fig_pie) + "__PLOTLY_JSON_END__")
         />
 
         {selectedVar && (
-          <div className="p-5 bg-slate-50/50 border border-slate-200 rounded-2xl space-y-5 animate-in fade-in zoom-in-95 duration-300 shadow-inner">
-            <h4 className="text-xs font-bold font-sans uppercase tracking-[0.1em] text-slate-400">Options d'analyse</h4>
+          <div className="p-4 bg-slate-50/50 border border-slate-200 rounded-2xl space-y-4 animate-in fade-in zoom-in-95 duration-300 shadow-inner">
+            <h4 className="text-xs font-bold font-sans uppercase tracking-[0.1em] text-slate-400 px-1">Options d'analyse</h4>
             
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
               <div 
-                className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
+                className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
                 onClick={() => setShowStats(!showStats)}
               >
-                <Label className="text-sm font-medium text-slate-700 cursor-pointer flex-1">Statistiques descriptives</Label>
+                <Label className="text-xs font-medium text-slate-600 cursor-pointer flex-1">Statistiques descriptives</Label>
                 <Checkbox checked={showStats} onCheckedChange={() => setShowStats(!showStats)} />
               </div>
               
               {isNum ? (
                 <>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     <div 
-                      className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
+                      className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
                       onClick={() => setShowHist(!showHist)}
                     >
-                      <Label className="text-sm font-medium text-slate-700 cursor-pointer flex-1">Histogramme + Courbe</Label>
+                      <Label className="text-xs font-medium text-slate-600 cursor-pointer flex-1">Histogramme</Label>
                       <Checkbox checked={showHist} onCheckedChange={() => setShowHist(!showHist)} />
                     </div>
-                    {showHist && (
-                      <div className="pl-6 flex items-center space-x-3 py-1 animate-in slide-in-from-left-2 duration-200">
-                        <Label className="text-[11px] text-slate-500 font-semibold uppercase">Classes (bins):</Label>
-                        <Input 
-                          type="number" 
-                          className="w-20 h-8 text-xs rounded-lg border-slate-200 bg-white" 
-                          value={histBins} 
-                          onChange={e => setHistBins(e.target.value)} 
-                        />
-                      </div>
-                    )}
                   </div>
 
                   <div 
-                    className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
                     onClick={() => setShowBoxplot(!showBoxplot)}
                   >
-                    <Label className="text-sm font-medium text-slate-700 cursor-pointer flex-1">Boxplot (Moustaches)</Label>
+                    <Label className="text-xs font-medium text-slate-600 cursor-pointer flex-1">Boxplot (Moustaches)</Label>
                     <Checkbox checked={showBoxplot} onCheckedChange={() => setShowBoxplot(!showBoxplot)} />
                   </div>
 
                   <div 
-                    className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
                     onClick={() => setShowDensity(!showDensity)}
                   >
-                    <Label className="text-sm font-medium text-slate-700 cursor-pointer flex-1">Graphe de Densité</Label>
+                    <Label className="text-xs font-medium text-slate-600 cursor-pointer flex-1">Graphe de Densité</Label>
                     <Checkbox checked={showDensity} onCheckedChange={() => setShowDensity(!showDensity)} />
                   </div>
 
                   <div 
-                    className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
                     onClick={() => setShowQQ(!showQQ)}
                   >
-                    <Label className="text-sm font-medium text-slate-700 cursor-pointer flex-1">QQ Plot (Normalité)</Label>
+                    <Label className="text-xs font-medium text-slate-600 cursor-pointer flex-1">QQ Plot (Normalité)</Label>
                     <Checkbox checked={showQQ} onCheckedChange={() => setShowQQ(!showQQ)} />
                   </div>
                 </>
               ) : (
                 <>
                   <div 
-                    className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
                     onClick={() => setShowBar(!showBar)}
                   >
-                    <Label className="text-sm font-medium text-slate-700 cursor-pointer flex-1">Diagramme en barres</Label>
+                    <Label className="text-xs font-medium text-slate-600 cursor-pointer flex-1">Diagramme en barres</Label>
                     <Checkbox checked={showBar} onCheckedChange={() => setShowBar(!showBar)} />
                   </div>
 
                   <div 
-                    className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200 shadow-sm hover:border-indigo-200 transition-all cursor-pointer group"
                     onClick={() => setShowPie(!showPie)}
                   >
-                    <Label className="text-sm font-medium text-slate-700 cursor-pointer flex-1">Diagramme Circulaire</Label>
+                    <Label className="text-xs font-medium text-slate-600 cursor-pointer flex-1">Diagramme Circulaire</Label>
                     <Checkbox checked={showPie} onCheckedChange={() => setShowPie(!showPie)} />
                   </div>
                 </>
@@ -261,11 +250,11 @@ print("__PLOTLY_JSON_START__" + pio.to_json(fig_pie) + "__PLOTLY_JSON_END__")
         )}
       </div>
       
-      <div className="pt-4 border-t border-slate-100">
+      <div className="sticky bottom-0 pb-2 bg-slate-50/80 backdrop-blur-sm pt-4 mt-2 border-t border-slate-100 flex justify-end">
         <Button 
           onClick={runAnalysis} 
           disabled={!isEngineReady || isRunning || !selectedVar} 
-          className="w-full bg-indigo-600 hover:bg-indigo-700 h-11 text-sm font-semibold shadow-lg shadow-indigo-100 transition-all active:scale-[0.98]"
+          className="min-w-[200px] bg-indigo-600 hover:bg-indigo-700 h-11 text-sm font-semibold shadow-lg shadow-indigo-100 transition-all active:scale-[0.98]"
         >
           {isRunning ? 'Calcul en cours...' : 'Lancer l\'analyse'}
         </Button>

@@ -171,11 +171,58 @@ async def apply_global_filter(condition: str = None):
         return {"success": True, "rows_remaining": len(current_df)}
 
     try:
+        # Use query but handle potential issues with column names containing spaces
+        # Pandas query handles backticks for columns with spaces
         test_df = current_df.query(condition)
         global_filter_condition = condition
         return {"success": True, "rows_remaining": len(test_df)}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Condition invalide: {str(e)}")
+
+@app.post("/prepare/commit_filter")
+async def commit_filter():
+    global current_df, global_filter_condition
+    if current_df is None: raise HTTPException(status_code=400, detail="No data loaded")
+    if not global_filter_condition:
+        return {"success": False, "detail": "Aucun filtre actif"}
+    try:
+        current_df = current_df.query(global_filter_condition).copy()
+        global_filter_condition = None
+        return {"success": True, "rows": len(current_df)}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/prepare/calculate")
+async def add_calculated_column(new_name: str, expression: str):
+    global current_df
+    if current_df is None: raise HTTPException(status_code=400, detail="No data loaded")
+    try:
+        # Use pandas eval for simple column arithmetic
+        # This is relatively safe as it only operates on the dataframe columns
+        current_df[new_name] = current_df.eval(expression)
+        return {"success": True, "new_column": new_name}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Expression invalide: {str(e)}")
+
+@app.post("/prepare/update_cell")
+async def update_cell(row_index: int, column: str, value: str):
+    global current_df
+    if current_df is None: raise HTTPException(status_code=400, detail="No data loaded")
+    try:
+        # Get target value with correct type
+        old_val = current_df.at[row_index, column]
+        new_val = value
+        
+        if pd.api.types.is_numeric_dtype(current_df[column]):
+            try:
+                new_val = float(value.replace(',', '.'))
+            except:
+                new_val = np.nan if not value else value
+                
+        current_df.at[row_index, column] = new_val
+        return {"success": True, "new_value": str(new_val)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/analyze/descriptive")
 async def descriptive_stats(column: str):

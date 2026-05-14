@@ -22,30 +22,39 @@ import { toast } from 'sonner';
 import { TableVirtuoso } from 'react-virtuoso';
 
 export function DataTabView() {
-  const { columns, rowCount, setDataset, globalFilter, setGlobalFilter } = useStore();
+  const { columns, rowCount, setDataset, globalFilter, setGlobalFilter, datasetName, setRowCount } = useStore();
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [activePanel, setActivePanel] = useState<'view' | 'prepare' | 'filter'>('view');
+  
+  // Cell editing state
+  const [editingCell, setEditingCell] = useState<{ rowIndex: number, colName: string, actualIndex: number } | null>(null);
+  const [editValue, setEditValue] = useState('');
   
   // Prep states
   const [editingCol, setEditingCol] = useState<string | null>(null);
   const [newColName, setNewColName] = useState('');
   const [categorizingCol, setCategorizingCol] = useState<string | null>(null);
   const [bins, setBins] = useState(3);
+  const [calcNewColName, setCalcNewColName] = useState('');
+  const [calcExpression, setCalcExpression] = useState('');
 
   // Filter state
   const [filterStr, setFilterStr] = useState(globalFilter || '');
+  const [filterBuildCol, setFilterBuildCol] = useState('');
+  const [filterBuildOp, setFilterBuildOp] = useState('');
+  const [filterBuildVal, setFilterBuildVal] = useState('');
 
   useEffect(() => {
     loadPreview();
-  }, [columns]);
+  }, [columns, globalFilter]);
 
   const loadPreview = async () => {
     if (!columns.length) return;
     setLoading(true);
     try {
-      // Fetch more rows for a proper view - we use 1000 now
-      const code = `last_result = df.head(50000).to_json(orient="records") if df is not None else None`;
+      // Fetch data including original index for editing target
+      const code = `last_result = df.reset_index().head(50000).to_json(orient="records") if df is not None else None`;
       const res = await engine.runCode(code);
       
       if (res.result) {
@@ -68,13 +77,10 @@ export function DataTabView() {
     try {
       const res = await engine.renameColumn(oldName, newColName);
       if (res.success) {
-        const newCols = columns.map(c => 
-          c.name === oldName ? { ...c, name: newColName } : c
-        );
-        setDataset("Modified", newCols, rowCount, ""); // Keep rowCount, csvData string can be empty as it's in engine memory
         toast.success(`Variable renommée en ${newColName}`);
         setEditingCol(null);
         setNewColName('');
+        await syncDatasetToStore();
       } else {
         toast.error(res.error || "Échec du renommage");
       }
@@ -87,26 +93,41 @@ export function DataTabView() {
     try {
       const res = await engine.categorizeColumn(column, bins);
       if (res.success) {
-        // Need to refresh columns info
-        const code = `last_result = [{"name": c, "type": "categorical", "missing": int(df[c].isna().sum())} for c in df.columns]`;
-        const colRes = await engine.runCode(code);
-        if (colRes.result) {
-          const newCols = typeof colRes.result === 'string' ? JSON.parse(colRes.result) : colRes.result;
-          setDataset("Modified", newCols, rowCount, "");
-          toast.success(`Nouvelle variable créée : ${res.new_column}`);
-          setCategorizingCol(null);
-          loadPreview();
-        }
+        toast.success(`Nouvelle variable créée : ${res.new_column}`);
+        setCategorizingCol(null);
+        await syncDatasetToStore();
       }
     } catch (err) {
       toast.error("Erreur lors de la catégorisation");
     }
   };
 
+  const syncDatasetToStore = async () => {
+    setLoading(true);
+    try {
+      const code = `
+import pandas as pd
+column_info = []
+for col in df.columns:
+    col_type = 'numeric' if pd.api.types.is_numeric_dtype(df[col]) else 'categorical'
+    column_info.append({"name": col, "type": col_type, "missing": int(df[col].isnull().sum())})
+last_result = {"columns": column_info, "rows": len(df), "csv": df.to_csv(index=False)}
+`;
+      const res = await engine.runCode(code);
+      if (res.result) {
+        setDataset(datasetName || "Data", res.result.columns, res.result.rows, res.result.csv);
+        loadPreview();
+      }
+    } catch (err) {
+      console.error("Sync error", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const applyFilter = async () => {
     if (!filterStr) {
       setGlobalFilter(null);
-      loadPreview();
       return;
     }
 
@@ -114,13 +135,103 @@ export function DataTabView() {
       const res = await engine.checkFilter(filterStr);
       if (res.success) {
         setGlobalFilter(filterStr);
+        setRowCount(res.rows_remaining);
         toast.success(`Filtre appliqué : ${res.rows_remaining} lignes conservées`);
-        loadPreview();
       } else {
         toast.error(res.error || "Filtre invalide");
       }
     } catch (err) {
       toast.error("Erreur de syntaxe dans le filtre");
+    }
+  };
+
+  const commitFilter = async () => {
+    if (!globalFilter) return;
+    try {
+        const res = await engine.commitFilter();
+        if (res.success) {
+            toast.success("Filtre appliqué de manière permanente");
+            setGlobalFilter(null);
+            setFilterStr('');
+            await syncDatasetToStore();
+        }
+    } catch (err) {
+        toast.error("Erreur lors de l'application permanente");
+    }
+  };
+
+  const buildFilterFromParts = () => {
+    if (!filterBuildCol || !filterBuildOp) return;
+    
+    let part = '';
+    const colName = filterBuildCol.includes(' ') ? `\`${filterBuildCol}\`` : filterBuildCol;
+    const isNum = columns.find(c => c.name === filterBuildCol)?.type === 'numeric';
+    const val = isNum ? filterBuildVal : `"${filterBuildVal.replace(/"/g, '\\"')}"`;
+
+    switch (filterBuildOp) {
+      case '==': part = `${colName} == ${val}`; break;
+      case '!=': part = `${colName} != ${val}`; break;
+      case '>': part = `${colName} > ${val}`; break;
+      case '<': part = `${colName} < ${val}`; break;
+      case '>=': part = `${colName} >= ${val}`; break;
+      case '<=': part = `${colName} <= ${val}`; break;
+      case 'contains': part = `${colName}.str.contains("${filterBuildVal}", na=False)`; break;
+      case 'isnull': part = `${colName}.isnull()`; break;
+      case 'notnull': part = `${colName}.notnull()`; break;
+    }
+
+    if (filterStr) {
+        setFilterStr(prev => `${prev} and ${part}`);
+    } else {
+        setFilterStr(part);
+    }
+    
+    // Clear build states
+    setFilterBuildOp('');
+    setFilterBuildVal('');
+  };
+
+  const handleCellSave = async (actualIndex: number, colName: string) => {
+    if (editingCell === null) return;
+    
+    try {
+      const res = await engine.updateCell(actualIndex, colName, editValue);
+      if (res.success) {
+        // Update local state for immediate feedback
+        const newData = [...data];
+        const rowIdx = newData.findIndex(r => r.index === actualIndex);
+        if (rowIdx !== -1) {
+          newData[rowIdx][colName] = res.new_value;
+          setData(newData);
+        }
+        toast.success("Valeur modifiée");
+        
+        // Persist change to store
+        await syncDatasetToStore();
+      } else {
+        toast.error(res.error || "Erreur de modification");
+      }
+    } catch (err) {
+      toast.error("Échec de la modification");
+    } finally {
+      setEditingCell(null);
+    }
+  };
+
+  const handleAddCalculated = async () => {
+    if (!calcNewColName || !calcExpression) return;
+    try {
+        const res = await engine.addCalculatedColumn(calcNewColName, calcExpression);
+        if (res.success) {
+            toast.success(`Variable ${calcNewColName} ajoutée`);
+            setCalcNewColName('');
+            setCalcExpression('');
+            await syncDatasetToStore();
+        } else {
+            toast.error(res.error || "Erreur de calcul");
+        }
+    } catch (err) {
+        toast.error("Expression invalide");
     }
   };
 
@@ -154,6 +265,17 @@ export function DataTabView() {
             className="text-xs"
           >
             <Filter className="w-3.5 h-3.5 mr-2" /> Filtres
+          </Button>
+          <div className="h-4 w-[1px] bg-slate-200 mx-2"></div>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={syncDatasetToStore}
+            disabled={!columns.length || loading}
+            className="text-xs text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+            title="Sauvegarder les modifications dans le projet"
+          >
+            <RotateCcw className="w-3.5 h-3.5 mr-2" /> Synchro & Sauver
           </Button>
         </div>
         <div className="text-xs text-slate-500 font-mono">
@@ -207,15 +329,62 @@ export function DataTabView() {
                   try {
                     await engine.runCode('cat_cols = df.select_dtypes(exclude=["number"]).columns\ndf = pd.get_dummies(df, columns=cat_cols, drop_first=True, dtype=int)\nlast_result = "ok"');
                     toast.success("Variables catégorielles transformées en One-Hot (n-1 colonnes).");
-                    engine.runCode(`last_result = [{"name": c, "type": "numeric" if pd.api.types.is_numeric_dtype(df[c]) else "categorical", "missing": int(df[c].isna().sum())} for c in df.columns]`).then(res => {
-                        if (res.result) setDataset("Modified", JSON.parse(res.result), rowCount, "");
-                        loadPreview();
-                    });
+                    await syncDatasetToStore();
                   } catch(e) { toast.error("Erreur de transformation One-Hot"); }
                 }}
                >
                  Toutes les cat. (Dummies)
                </Button>
+            </div>
+
+            <h4 className="text-[13px] font-semibold text-slate-700 flex items-center mt-4">
+              <Calculator className="w-4 h-4 mr-2" /> Calculateur (Variable Calculée)
+            </h4>
+            <div className="flex flex-col space-y-2">
+              <input 
+                className="w-full rounded border border-slate-300 px-2 py-1 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                placeholder="Nom de la nouvelle variable"
+                value={calcNewColName}
+                onChange={(e) => setCalcNewColName(e.target.value)}
+              />
+              <input 
+                className="w-full rounded border border-slate-300 px-2 py-1 text-xs font-mono focus:ring-1 focus:ring-indigo-500 outline-none"
+                placeholder="Ex: Age * 2 + 10"
+                value={calcExpression}
+                onChange={(e) => setCalcExpression(e.target.value)}
+              />
+              <Button 
+                size="sm" 
+                className="h-7 text-xs bg-indigo-600 text-white hover:bg-indigo-700 shadow-none self-end"
+                disabled={!calcNewColName || !calcExpression}
+                onClick={handleAddCalculated}
+              >
+                Calculer
+              </Button>
+            </div>
+            
+            <h4 className="text-[13px] font-semibold text-slate-700 flex items-center mt-4">
+              <Trash2 className="w-4 h-4 mr-2" /> Supprimer Variable
+            </h4>
+            <div className="flex flex-col space-y-2">
+              <select 
+                className="w-full rounded border border-slate-300 px-2 py-1 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                onChange={async (e) => {
+                  const col = e.target.value;
+                  if (!col) return;
+                  if (window.confirm(`Supprimer la variable "${col}" ?`)) {
+                    try {
+                      await engine.runCode(`df = df.drop(columns=['${col}'])\nlast_result = "ok"`);
+                      toast.success("Variable supprimée");
+                      await syncDatasetToStore();
+                    } catch(err) { toast.error("Erreur de suppression"); }
+                  }
+                  e.target.value = "";
+                }}
+              >
+                <option value="">Sélectionner une variable...</option>
+                {columns.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+              </select>
             </div>
           </div>
           
@@ -249,6 +418,36 @@ export function DataTabView() {
                 </div>
               )}
             </div>
+
+            <h4 className="text-[13px] font-semibold text-slate-700 flex items-center mt-4">
+              <Calculator className="w-4 h-4 mr-2" /> Variable Calculée
+            </h4>
+            <div className="flex flex-col space-y-2">
+              <input 
+                className="w-full rounded border border-slate-300 px-2 py-1 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
+                value={calcNewColName}
+                onChange={(e) => setCalcNewColName(e.target.value)}
+                placeholder="Nom de la nouvelle variable"
+              />
+              <div className="flex space-x-1">
+                <input 
+                    className="flex-1 rounded border border-slate-300 px-2 py-1 text-xs focus:ring-1 focus:ring-indigo-500 outline-none font-mono"
+                    value={calcExpression}
+                    onChange={(e) => setCalcExpression(e.target.value)}
+                    placeholder="Expression (ex: Var1 + Var2)"
+                />
+                <Button 
+                    size="sm" 
+                    className="h-7 text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 shadow-none"
+                    onClick={handleAddCalculated}
+                >
+                    Ajouter
+                </Button>
+              </div>
+              <p className="text-[10px] text-slate-400">
+                Supporte : +, -, *, /, ==, !=, &gt;, &lt;
+              </p>
+            </div>
           </div>
 
           <div className="space-y-3 lg:col-span-2">
@@ -264,10 +463,7 @@ export function DataTabView() {
                   try {
                     await engine.runCode('df = df.dropna()\nlast_result = "ok"');
                     toast.success("Lignes contenant des valeurs manquantes supprimées.");
-                    engine.runCode(`last_result = [{"name": c, "type": "numeric" if pd.api.types.is_numeric_dtype(df[c]) else "categorical", "missing": int(df[c].isna().sum())} for c in df.columns]`).then(res => {
-                        if (res.result) setDataset("Modified", JSON.parse(res.result), rowCount, "");
-                        loadPreview();
-                    });
+                    await syncDatasetToStore();
                   } catch(e) { toast.error("Erreur de suppression"); }
                 }}
                >
@@ -281,10 +477,7 @@ export function DataTabView() {
                   try {
                     await engine.runCode('numeric_cols = df.select_dtypes(include=["number"]).columns\ndf[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].mean())\nlast_result = "ok"');
                     toast.success("Valeurs manquantes numériques remplacées par la moyenne.");
-                    engine.runCode(`last_result = [{"name": c, "type": "numeric" if pd.api.types.is_numeric_dtype(df[c]) else "categorical", "missing": int(df[c].isna().sum())} for c in df.columns]`).then(res => {
-                        if (res.result) setDataset("Modified", JSON.parse(res.result), rowCount, "");
-                        loadPreview();
-                    });
+                    await syncDatasetToStore();
                   } catch(e) { toast.error("Erreur d'imputation"); }
                 }}
                >
@@ -298,10 +491,7 @@ export function DataTabView() {
                   try {
                     await engine.runCode('numeric_cols = df.select_dtypes(include=["number"]).columns\ndf[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())\nlast_result = "ok"');
                     toast.success("Valeurs manquantes numériques remplacées par la médiane.");
-                    engine.runCode(`last_result = [{"name": c, "type": "numeric" if pd.api.types.is_numeric_dtype(df[c]) else "categorical", "missing": int(df[c].isna().sum())} for c in df.columns]`).then(res => {
-                        if (res.result) setDataset("Modified", JSON.parse(res.result), rowCount, "");
-                        loadPreview();
-                    });
+                    await syncDatasetToStore();
                   } catch(e) { toast.error("Erreur d'imputation"); }
                 }}
                >
@@ -315,10 +505,7 @@ export function DataTabView() {
                   try {
                     await engine.runCode('cat_cols = df.select_dtypes(exclude=["number"]).columns\nfor c in cat_cols:\n    if not df[c].mode().empty:\n        df[c] = df[c].fillna(df[c].mode()[0])\nlast_result = "ok"');
                     toast.success("Valeurs manquantes catégorielles remplacées (Mode).");
-                    engine.runCode(`last_result = [{"name": c, "type": "numeric" if pd.api.types.is_numeric_dtype(df[c]) else "categorical", "missing": int(df[c].isna().sum())} for c in df.columns]`).then(res => {
-                        if (res.result) setDataset("Modified", JSON.parse(res.result), rowCount, "");
-                        loadPreview();
-                    });
+                    await syncDatasetToStore();
                   } catch(e) { toast.error("Erreur d'imputation catégorielle"); }
                 }}
                >
@@ -333,10 +520,7 @@ export function DataTabView() {
                     toast.info("Imputation KNN en cours...");
                     await engine.runCode('from sklearn.impute import KNNImputer\nnumeric_cols = df.select_dtypes(include=["number"]).columns\nif len(numeric_cols) > 0:\n    imputer = KNNImputer(n_neighbors=5)\n    df[numeric_cols] = imputer.fit_transform(df[numeric_cols])\nlast_result = "ok"');
                     toast.success("Valeurs manquantes numériques remplacées par KNN.");
-                    engine.runCode(`last_result = [{"name": c, "type": "numeric" if pd.api.types.is_numeric_dtype(df[c]) else "categorical", "missing": int(df[c].isna().sum())} for c in df.columns]`).then(res => {
-                        if (res.result) setDataset("Modified", JSON.parse(res.result), rowCount, "");
-                        loadPreview();
-                    });
+                    await syncDatasetToStore();
                   } catch(e) { toast.error("Erreur lors de l'imputation KNN"); }
                 }}
                >
@@ -368,10 +552,7 @@ df = df.dropna(subset=numeric_cols)
 last_result = "ok"
                     `);
                     toast.success("Outliers (Méthode IQR) identifiés et supprimés.");
-                    engine.runCode(`last_result = [{"name": c, "type": "numeric" if pd.api.types.is_numeric_dtype(df[c]) else "categorical", "missing": int(df[c].isna().sum())} for c in df.columns]`).then(res => {
-                        if (res.result) setDataset("Modified", JSON.parse(res.result), rowCount, "");
-                        loadPreview();
-                    });
+                    await syncDatasetToStore();
                   } catch(e) { toast.error("Erreur - Suppression IQR"); }
                 }}
                >
@@ -393,10 +574,7 @@ df = df[(z_scores < 3).all(axis=1)]
 last_result = "ok"
                     `);
                     toast.success("Outliers (Z-Score > 3) supprimés.");
-                    engine.runCode(`last_result = [{"name": c, "type": "numeric" if pd.api.types.is_numeric_dtype(df[c]) else "categorical", "missing": int(df[c].isna().sum())} for c in df.columns]`).then(res => {
-                        if (res.result) setDataset("Modified", JSON.parse(res.result), rowCount, "");
-                        loadPreview();
-                    });
+                    await syncDatasetToStore();
                   } catch(e) { toast.error("Erreur - Supression Z-Score"); }
                 }}
                >
@@ -411,25 +589,93 @@ last_result = "ok"
       {/* Zone de filtres */}
       {activePanel === 'filter' && columns.length > 0 && (
         <div className="bg-white border-b border-slate-200 p-4 animate-in slide-in-from-top duration-300">
-          <div className="max-w-3xl space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Filtre Global (Syntaxe Python/Pandas)</label>
-            <div className="flex items-center space-x-2">
-              <input 
-                className="flex-1 rounded-md border border-slate-200 px-4 py-2 text-sm font-mono bg-slate-50 focus:bg-white transition-colors"
-                placeholder="Ex: Revenu > 5000 and Age < 30"
-                value={filterStr}
-                onChange={(e) => setFilterStr(e.target.value)}
-              />
-              <Button onClick={applyFilter} className="bg-indigo-600 hover:bg-indigo-700">Appliquer</Button>
-              {globalFilter && (
-                <Button variant="ghost" onClick={() => { setFilterStr(''); setGlobalFilter(null); loadPreview(); }}>
-                  Effacer
+          <div className="max-w-5xl space-y-4">
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Assistant de Filtrage</label>
+              <div className="flex flex-wrap gap-2 items-end">
+                <div className="flex flex-col space-y-1">
+                  <span className="text-[10px] text-slate-400 ml-1">Variable</span>
+                  <select 
+                    className="rounded border border-slate-200 px-2 py-1.5 text-xs outline-none bg-slate-50 focus:bg-white"
+                    value={filterBuildCol}
+                    onChange={(e) => setFilterBuildCol(e.target.value)}
+                  >
+                    <option value="">Choisir...</option>
+                    {columns.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div className="flex flex-col space-y-1">
+                  <span className="text-[10px] text-slate-400 ml-1">Opération</span>
+                  <select 
+                    className="rounded border border-slate-200 px-2 py-1.5 text-xs outline-none bg-slate-50 focus:bg-white"
+                    value={filterBuildOp}
+                    onChange={(e) => setFilterBuildOp(e.target.value)}
+                  >
+                    <option value="">Choisir...</option>
+                    <option value="==">Égal à (=)</option>
+                    <option value="!=">Différent de (!=)</option>
+                    <option value=">">Supérieur à (&gt;)</option>
+                    <option value="<">Inférieur à (&lt;)</option>
+                    <option value=">=">Supérieur ou égal (&gt;=)</option>
+                    <option value="<=">Inférieur ou égal (&lt;=)</option>
+                    <option value="contains">Contient (texte)</option>
+                    <option value="isnull">Est vide (N/A)</option>
+                    <option value="notnull">N'est pas vide</option>
+                  </select>
+                </div>
+                {filterBuildOp !== 'isnull' && filterBuildOp !== 'notnull' && (
+                  <div className="flex flex-col space-y-1 shrink-0 w-32">
+                    <span className="text-[10px] text-slate-400 ml-1">Valeur</span>
+                    <input 
+                      className="rounded border border-slate-200 px-2 py-1.5 text-xs outline-none bg-slate-50 focus:bg-white"
+                      placeholder="Valeur..."
+                      value={filterBuildVal}
+                      onChange={(e) => setFilterBuildVal(e.target.value)}
+                    />
+                  </div>
+                )}
+                <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="h-8 text-xs border-dashed"
+                    onClick={buildFilterFromParts}
+                    disabled={!filterBuildCol || !filterBuildOp}
+                >
+                  Ajouter au filtre
                 </Button>
-              )}
+              </div>
             </div>
-            <p className="text-[10px] text-slate-400 italic">
-              Les filtres appliqués ici impacteront toutes les analyses ultérieures.
-            </p>
+
+            <div className="pt-2 border-t border-slate-100">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">Expression finale (Pandas Query)</label>
+              <div className="flex items-center space-x-2">
+                <input 
+                  className="flex-1 rounded-md border border-slate-200 px-4 py-2 text-sm font-mono bg-slate-50 focus:bg-white transition-colors"
+                  placeholder="Ex: Revenu > 5000 and Age < 30"
+                  value={filterStr}
+                  onChange={(e) => setFilterStr(e.target.value)}
+                />
+                <Button onClick={applyFilter} className="bg-indigo-600 hover:bg-indigo-700 h-9">Appliquer</Button>
+                {globalFilter && (
+                   <Button 
+                    onClick={commitFilter} 
+                    variant="outline" 
+                    className="h-9 border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                    title="Supprime les lignes exclues du jeu de données original"
+                   >
+                     Valider définitivement
+                   </Button>
+                )}
+                {(globalFilter || filterStr) && (
+                  <Button variant="ghost" onClick={() => { setFilterStr(''); setGlobalFilter(null); }} className="h-9 font-normal text-slate-400">
+                    Réinitialiser
+                  </Button>
+                )}
+              </div>
+              <p className="text-[10px] text-slate-400 italic mt-2">
+                Note : Double-cliquez sur une cellule dans le tableau pour la modifier manuellement.
+              </p>
+            </div>
           </div>
         </div>
       )}
@@ -474,15 +720,41 @@ last_result = "ok"
               itemContent={(idx, row) => (
                 <>
                   <td className="px-4 py-2 text-xs text-slate-400 font-mono text-center border-r border-slate-100 bg-slate-50/50">{idx + 1}</td>
-                  {columns.map((col) => (
-                    <td key={col.name} className="px-4 py-2 text-sm text-slate-600 font-medium">
-                      {row[col.name] === null || row[col.name] === undefined ? (
-                        <span className="text-slate-300 italic text-[10px]">null</span>
-                      ) : (
-                        row[col.name].toString()
-                      )}
-                    </td>
-                  ))}
+                  {columns.map((col) => {
+                    const isEditing = editingCell?.actualIndex === row.index && editingCell?.colName === col.name;
+                    return (
+                      <td key={col.name} className="px-4 py-2 text-sm text-slate-600 font-medium whitespace-nowrap p-0">
+                        {isEditing ? (
+                          <input 
+                            autoFocus
+                            className="w-full h-full px-4 py-2 bg-white border-2 border-indigo-500 outline-none rounded-sm z-50 relative"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            onBlur={() => handleCellSave(row.index, col.name)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleCellSave(row.index, col.name);
+                              if (e.key === 'Escape') setEditingCell(null);
+                            }}
+                          />
+                        ) : (
+                          <div 
+                            className="px-4 py-2 h-full w-full cursor-text hover:bg-indigo-50/50 transition-colors truncate max-w-[200px]"
+                            onDoubleClick={() => {
+                              setEditingCell({ rowIndex: idx, colName: col.name, actualIndex: row.index });
+                              setEditValue(row[col.name]?.toString() || '');
+                            }}
+                            title="Double-cliquez pour modifier"
+                          >
+                            {row[col.name] === null || row[col.name] === undefined ? (
+                              <span className="text-slate-300 italic text-[10px]">null</span>
+                            ) : (
+                              row[col.name].toString()
+                            )}
+                          </div>
+                        )}
+                      </td>
+                    );
+                  })}
                 </>
               )}
             />

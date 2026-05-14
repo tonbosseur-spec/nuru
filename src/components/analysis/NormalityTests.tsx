@@ -146,13 +146,13 @@ if px:
         />
       </div>
       
-      <div className="pt-4 border-t border-slate-100">
+      <div className="sticky bottom-0 pb-2 bg-slate-50/80 backdrop-blur-sm pt-4 mt-2 border-t border-slate-100 flex justify-end">
          <Button 
            onClick={runAnalysis} 
            disabled={!isEngineReady || isRunning || !selectedVar || selectedTests.length === 0} 
-           className="w-full bg-indigo-600 hover:bg-indigo-700 h-11 text-sm font-semibold shadow-lg shadow-indigo-100 transition-all active:scale-[0.98]"
+           className="min-w-[200px] bg-indigo-600 hover:bg-indigo-700 h-11 text-sm font-semibold shadow-lg shadow-indigo-100 transition-all active:scale-[0.98]"
          >
-           {isRunning ? 'Analyse en cours...' : 'Lancer les Tests'}
+           {isRunning ? 'Analyse en cours...' : 'Lancer l\'analyse'}
          </Button>
       </div>
     </div>

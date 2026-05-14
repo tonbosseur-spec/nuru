@@ -96,7 +96,18 @@ export function ResultsArea() {
       if (isDesktop()) {
         const result = await (window as any).pywebview.api.save_file_dialog(htmlContent, filename);
         if (result.success) {
-          toast.success(`Enregistré : ${result.path}`);
+          toast.success(`Enregistré : ${result.path}`, {
+            action: {
+              label: 'Ouvrir',
+              onClick: () => (window as any).pywebview.api.open_file(result.path)
+            },
+            cancel: {
+              label: 'Dossier',
+              onClick: () => (window as any).pywebview.api.open_folder(result.path)
+            }
+          });
+        } else if (result.error && result.error !== 'Cancelled') {
+          toast.error("Erreur d'export: " + result.error);
         }
         return;
       }
@@ -170,7 +181,7 @@ export function ResultsArea() {
                           />
                         </div>
                         {afterHtml && afterHtml.trim() && (
-                           <div dangerouslySetInnerHTML={{ __html: afterHtml }} className="mt-4 prose max-w-none prose-table:w-full prose-table:border-collapse prose-th:border prose-th:p-2 prose-th:bg-slate-50 prose-td:border prose-td:p-2 overflow-x-auto" />
+                           <div dangerouslySetInnerHTML={{ __html: afterHtml }} className="mt-4 results-content overflow-x-auto" />
                         )}
                       </React.Fragment>
                     );
@@ -184,7 +195,7 @@ export function ResultsArea() {
 
     return (
       <div className="w-full">
-         <div dangerouslySetInnerHTML={{ __html: res.output }} className="prose max-w-none prose-table:w-full prose-table:border-collapse prose-th:border prose-th:p-2 prose-th:bg-slate-50 prose-td:border prose-td:p-2 overflow-x-auto" />
+         <div dangerouslySetInnerHTML={{ __html: res.output }} className="results-content overflow-x-auto" />
       </div>
     );
   };
@@ -209,11 +220,11 @@ export function ResultsArea() {
         </Button>
       </div>
       <ScrollArea className="flex-1 min-h-0 w-full overflow-hidden">
-         <div className="p-6 space-y-8 pb-10 min-w-max">
+         <div className="p-6 space-y-8 pb-10 max-w-full">
            {results.map((res) => {
              const libraries = res.libraries || extractLibraries(res.code);
              return (
-               <div key={res.id} className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm transition-all hover:shadow-md inline-block min-w-full">
+               <div key={res.id} className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm transition-all hover:shadow-md block w-full">
                  <div className="bg-slate-50 px-4 py-3 font-semibold text-slate-700 border-b flex justify-between items-center sticky left-0 w-full">
                     <span>{res.title}</span>
                     <div className="flex items-center space-x-2">

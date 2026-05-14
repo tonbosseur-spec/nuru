@@ -65,6 +65,7 @@ interface AppState {
   setDataset: (name: string, columns: ColumnInfo[], rowCount: number, csvData: string) => void;
   setActiveTab: (tab: string) => void;
   setGlobalFilter: (filter: string | null) => void;
+  setRowCount: (count: number) => void;
   addResult: (result: ResultItem) => void;
   clearResults: () => void;
   toggleSidebar: () => void;
@@ -131,6 +132,11 @@ export const useStore = create<AppState>((set, get) => ({
 
   setGlobalFilter: (globalFilter) => {
     set({ globalFilter });
+    get().saveCurrentWorkspace();
+  },
+  
+  setRowCount: (rowCount) => {
+    set({ rowCount });
     get().saveCurrentWorkspace();
   },
   

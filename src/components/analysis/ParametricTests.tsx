@@ -160,44 +160,138 @@ print("__PLOTLY_JSON_START__" + pio.to_json(fig_box) + "__PLOTLY_JSON_END__")
 import statsmodels.api as sm
 from statsmodels.formula.api import ols
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
+from itertools import combinations
 
 target = '${var1}'
 group_var = '${var2}'
 data = df[[target, group_var]].dropna()
 
 # Levene
-groups = [group[target].values for name, group in data.groupby(group_var)]
-stat_l, p_l = stats.levene(*groups)
-print("<h4>Test de Levene (Homogénéité)</h4>")
-print(f"<p>p-value: {p_l:.4e}</p>")
+groups_names = sorted(data[group_var].unique())
+groups_data = [data[data[group_var] == g][target].values for g in groups_names]
+stat_l, p_l = stats.levene(*groups_data)
+print("<div class='mb-6'>")
+print("<h4>1. Vérification des assomptions</h4>")
+print(f"<p className='text-sm'><b>Test de Levene (Homogénéité) :</b> p-value = {p_l:.4e}</p>")
+if p_l < 0.05:
+    print("<p className='text-xs text-amber-600 bg-amber-50 p-2 rounded'>Attention: Les variances ne sont pas homogènes. L'ANOVA peut être biaisée.</p>")
+else:
+    print("<p className='text-xs text-green-600 bg-green-50 p-2 rounded'>L'homogénéité des variances est respectée.</p>")
+print("</div>")
 
 # ANOVA
-model = ols(f"{target} ~ C({group_var})", data=data).fit()
+model = ols(f"\`{target}\` ~ C(\`{group_var}\`)", data=data).fit()
 anova_table = sm.stats.anova_lm(model, typ=2)
 p_val = anova_table.iloc[0]['PR(>F)']
 
-print("<h4>Tableau ANOVA</h4>")
-print(anova_table.round(4).to_html(classes=['table', 'table-bordered']))
-
-interp_pval = "Il existe une différence statistiquement significative (p < 0.05) entre au moins deux groupes." if p_val < 0.05 else "Il n'y a pas de différence statistiquement significative entre les moyennes des groupes (p >= 0.05)."
-print("<div className='mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-md text-slate-800'>")
-print("<h4 className='font-bold text-blue-900 mb-2'>Interprétation des Résultats</h4>")
-print(f"<p className='mb-1'><b>Significativité Globale :</b> {interp_pval}</p>")
+print("<div class='mb-6'>")
+print("<h4>2. Résultats de l'ANOVA</h4>")
+print(anova_table.round(4).to_html(classes=['table', 'table-bordered', 'w-full']))
 print("</div>")
 
-if p_val < 0.05:
-    print("<p className='text-sm text-green-600 mt-4'><b>Analyse Post-Hoc requise (voir ci-dessous)</b></p>")
-    print("<h4>Post-Hoc (Tukey HSD)</h4>")
+# Interprétation ANOVA
+is_significant = p_val < 0.05
+interp_title = "Différence significative" if is_significant else "Pas de différence significative"
+interp_color = "text-indigo-900 bg-indigo-50 border-indigo-500" if is_significant else "text-slate-900 bg-slate-50 border-slate-500"
+
+print(f"<div className='mt-4 p-4 border-l-4 rounded-r-md {interp_color}'>")
+print(f"<h4 className='font-bold mb-2'>{interp_title} (p = {p_val:.4f})</h4>")
+if is_significant:
+    print(f"<p className='text-sm'>L'analyse de variance indique qu'il existe au moins une différence significative entre les moyennes des groupes de <b>{group_var}</b> pour la variable <b>{target}</b>.</p>")
+else:
+    print(f"<p className='text-sm'>Les différences observées entre les moyennes des groupes ne sont pas statistiquement significatives au seuil de 5%.</p>")
+print("</div>")
+
+if is_significant:
+    print("<div class='mt-8'>")
+    print("<h4>3. Analyse Post-Hoc (Tukey HSD) avec Lettres</h4>")
     tukey = pairwise_tukeyhsd(endog=data[target], groups=data[group_var], alpha=0.05)
-    print(pd.DataFrame(data=tukey._results_table.data[1:], columns=tukey._results_table.data[0]).to_html(classes=['table', 'table-bordered'], index=False))
+    
+    # CLD Logic
+    def get_cld(gnames, gmeans, tres):
+        n = len(gnames)
+        adj = np.ones((n, n), dtype=bool)
+        g_to_idx = {g: i for i, g in enumerate(gnames)}
+        
+        for i in range(len(tres.reject)):
+            # statsmodels might return groups in different order in reject
+            g1, g2 = tres.groupsunique[tres.group1[i]], tres.groupsunique[tres.group2[i]]
+            if tres.reject[i]:
+                idx1, idx2 = g_to_idx[g1], g_to_idx[g2]
+                adj[idx1, idx2] = adj[idx2, idx1] = False
+        
+        def find_cliques(curr, cand, excl):
+            if not cand and not excl: return [curr]
+            cliques = []
+            for v in list(cand):
+                new_cand = [u for u in cand if adj[v, u]]
+                new_excl = [u for u in excl if adj[v, u]]
+                cliques.extend(find_cliques(curr + [v], new_cand, new_excl))
+                cand.remove(v)
+                excl.append(v)
+            return cliques
+            
+        cliques = find_cliques([], list(range(n)), [])
+        # Sort cliques by average mean of members (descending for 'a' to be highest)
+        clique_means = [np.mean([gmeans[i] for i in c]) for c in cliques]
+        sorted_cliques = [cliques[i] for i in np.argsort(clique_means)[::-1]]
+        
+        res_letters = [[] for _ in range(n)]
+        for i, c in enumerate(sorted_cliques):
+            l = chr(97 + i)
+            for gi in c: res_letters[gi].append(l)
+        return ["".join(sorted(l)) for l in res_letters]
 
+    means_dict = data.groupby(group_var)[target].mean().to_dict()
+    means_list = [means_dict[g] for g in groups_names]
+    letters = get_cld(groups_names, means_list, tukey)
+    
+    summary = pd.DataFrame({
+        'Groupe': groups_names,
+        'Moyenne': means_list,
+        'N': data.groupby(group_var)[target].count().values,
+        'Std Dev': data.groupby(group_var)[target].std().values,
+        'Lettres Tukey': letters
+    })
+    
+    print("<p className='text-xs text-slate-500 mb-2 italic'>Les groupes partageant une même lettre ne sont pas significativement différents.</p>")
+    print(summary.round(4).to_html(classes=['table', 'table-bordered', 'w-full'], index=False))
+    
+    # Interpretation post-hoc
+    print("<div class='mt-4 p-4 bg-green-50 text-green-900 border-l-4 border-green-500 rounded-sm text-sm'>")
+    print("<b>Interprétation des lettres :</b>")
+    print("<ul class='list-disc ml-4 mt-2'>")
+    for i, g in enumerate(groups_names):
+        print(f"<li>Groupe <b>{g}</b> : Moyenne = {means_list[i]:.2f}, Groupe de comparaison = <b>{letters[i]}</b></li>")
+    print("</ul>")
+    print("</div>")
+    print("</div>")
 
-fig_box = px.box(data, x=group_var, y=target, color=group_var, title='Boxplots par groupe')
-print("__PLOTLY_JSON_START__" + pio.to_json(fig_box) + "__PLOTLY_JSON_END__")
+    # Plotly with letters
+    fig_box = px.box(data, x=group_var, y=target, color=group_var, 
+                     title=f'Comparaison des moyennes de {target} par {group_var}',
+                     points="all", category_orders={group_var: groups_names})
+    
+    # Add letters above boxplots
+    max_y = data[target].max()
+    padding = (max_y - data[target].min()) * 0.05
+    for i, g in enumerate(groups_names):
+        fig_box.add_annotation(
+            x=g, y=max_y + padding,
+            text=f"<b>{letters[i]}</b>",
+            showarrow=False,
+            font=dict(size=14, color="black")
+        )
+    print("__PLOTLY_JSON_START__" + pio.to_json(fig_box) + "__PLOTLY_JSON_END__")
 
-# Interaction/Mean plot via px.line
+else:
+    # Small plot if not significant
+    fig_box = px.box(data, x=group_var, y=target, color=group_var, title=f'{target} par {group_var} (NS)')
+    print("__PLOTLY_JSON_START__" + pio.to_json(fig_box) + "__PLOTLY_JSON_END__")
+
+# Mean plot
 agg = data.groupby(group_var)[target].mean().reset_index()
-fig_mean = px.line(agg, x=group_var, y=target, markers=True, title='Mean plots')
+fig_mean = px.line(agg, x=group_var, y=target, markers=True, title='Profil des moyennes')
 print("__PLOTLY_JSON_START__" + pio.to_json(fig_mean) + "__PLOTLY_JSON_END__")
 `;
     }
@@ -229,7 +323,7 @@ print("__PLOTLY_JSON_START__" + pio.to_json(fig_mean) + "__PLOTLY_JSON_END__")
           allowMultiple={false}
         />
 
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <VariableSelector 
             variables={numericCols}
             selected={var1}
@@ -237,19 +331,25 @@ print("__PLOTLY_JSON_START__" + pio.to_json(fig_mean) + "__PLOTLY_JSON_END__")
             label={`Variable Quantitative ${testType === 'ttest_rel' ? '1' : ''}`}
           />
 
-          {testType === 'ttest_1samp' && (
+          {testType === 'ttest_1samp' ? (
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-400 block">Moyenne théorique</label>
-              <Input 
-                type="number" 
-                value={mu} 
-                onChange={e => setMu(e.target.value)}
-                className="rounded-xl border-slate-200 h-11"
-              />
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-400 block px-1">Moyenne théorique (μ₀)</label>
+              <div className="border border-slate-200 rounded-xl p-4 bg-white shadow-sm flex flex-col justify-center h-[280px]">
+                <p className="text-xs text-slate-500 mb-4 italic">
+                  Entrez la valeur de référence à laquelle vous souhaitez comparer la moyenne de {var1 || 'votre variable'}.
+                </p>
+                <div className="relative">
+                  <Input 
+                    type="number" 
+                    value={mu} 
+                    onChange={e => setMu(e.target.value)}
+                    className="rounded-xl border-slate-200 h-12 text-lg font-medium pl-10"
+                  />
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-serif italic text-lg">μ₀</div>
+                </div>
+              </div>
             </div>
-          )}
-
-          {testType !== 'ttest_1samp' && (
+          ) : (
             <VariableSelector 
               variables={testType === 'ttest_rel' ? numericCols : columns}
               selected={var2}
@@ -260,13 +360,13 @@ print("__PLOTLY_JSON_START__" + pio.to_json(fig_mean) + "__PLOTLY_JSON_END__")
         </div>
       </div>
       
-      <div className="pt-4 border-t border-slate-100">
+      <div className="sticky bottom-0 pb-2 bg-slate-50/80 backdrop-blur-sm pt-4 mt-2 border-t border-slate-100 flex justify-end">
          <Button 
            onClick={runAnalysis} 
            disabled={!isEngineReady || isRunning || !var1 || (testType !== 'ttest_1samp' && !var2)} 
-           className="w-full bg-indigo-600 hover:bg-indigo-700 h-11 text-sm font-semibold shadow-lg shadow-indigo-100 transition-all active:scale-[0.98]"
+           className="min-w-[200px] bg-indigo-600 hover:bg-indigo-700 h-11 text-sm font-semibold shadow-lg shadow-indigo-100 transition-all active:scale-[0.98]"
          >
-           {isRunning ? 'Calcul en cours...' : 'Lancer le Test'}
+           {isRunning ? 'Calcul en cours...' : 'Lancer l\'analyse'}
          </Button>
       </div>
     </div>

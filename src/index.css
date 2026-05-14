@@ -127,4 +127,36 @@
   html {
     @apply font-sans;
     }
+  
+  /* Ajout de styles pour les tableaux de résultats (DataFrames) */
+  .results-content table {
+    @apply w-full border-collapse my-4 text-sm;
+    min-width: 400px;
+  }
+  
+  .results-content th {
+    @apply bg-slate-100 font-bold p-2.5 text-left border border-slate-200 text-slate-700;
+  }
+  
+  .results-content td {
+    @apply p-2.5 border border-slate-200 text-slate-600;
+    vertical-align: top;
+  }
+
+  .results-content tr:nth-child(even) {
+    @apply bg-slate-50/50;
+  }
+
+  .results-content tr:hover {
+    @apply bg-slate-100/50;
+  }
+  
+  /* Force l'alignement à gauche pour éviter les décalages si Pandas met align="right" */
+  .results-content td, .results-content th {
+    text-align: left !important;
+  }
+
+  .results-content pre {
+    @apply bg-slate-900 text-blue-100 p-4 rounded-lg my-4 font-mono text-xs overflow-x-auto whitespace-pre;
+  }
 }
