@@ -103,8 +103,8 @@ class Api:
 
         result = window.create_file_dialog(webview.SAVE_DIALOG, directory=os.path.expanduser("~"), save_filename=filename, file_types=file_types)
         
-        # Sur certaines plateformes, result peut être une liste [path]
-        if isinstance(result, list):
+        # Sur certaines plateformes, result peut être une liste ou un tuple [path]
+        if isinstance(result, (list, tuple)):
             result = result[0] if len(result) > 0 else None
 
         if result:
@@ -163,11 +163,17 @@ class Api:
     def open_file_dialog(self):
         """Ouvre une boîte de dialogue pour charger un fichier .nra"""
         result = window.create_file_dialog(webview.OPEN_DIALOG, allow_multiple=False, file_types=('Nuru Workspace (*.nra)', 'All files (*.*)'))
-        if result and len(result) > 0:
+        if result:
+            if isinstance(result, str):
+                path = result
+            elif isinstance(result, (list, tuple)) and len(result) > 0:
+                path = result[0]
+            else:
+                return {"success": False, "error": "Cancelled"}
             try:
-                with open(result[0], 'r', encoding='utf-8') as f:
+                with open(path, 'r', encoding='utf-8') as f:
                     content = f.read()
-                return {"success": True, "content": content, "filename": os.path.basename(result[0])}
+                return {"success": True, "content": content, "filename": os.path.basename(path)}
             except Exception as e:
                 return {"success": False, "error": str(e)}
         return {"success": False, "error": "Cancelled"}

@@ -57,6 +57,14 @@ corr_res = pd.DataFrame({
     'p-value': [None, p_p, p_s]
 })
 print(corr_res.round(4).to_html(classes=['table', 'table-bordered'], index=False, na_rep='-'))
+
+print("<div class='mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-md text-slate-800'>")
+print("<h4 class='font-bold text-blue-900 mb-2'>Interprétation des Résultats</h4>")
+interp_p = "Corrélation linéaire statistiquement significative" if p_p < 0.05 else "Pas de corrélation linéaire significative"
+interp_s = "Corrélation monotone statistiquement significative" if p_s < 0.05 else "Pas de corrélation monotone significative"
+print(f"<p class='mb-1'><b>Pearson :</b> {interp_p} (p={p_p:.4f}).</p>")
+print(f"<p class='mb-1'><b>Spearman :</b> {interp_s} (p={p_s:.4f}).</p>")
+print("</div>")
 `;
       if (showScatter) {
         code += `
@@ -95,6 +103,18 @@ chi2_res = pd.DataFrame({
     'Valeur': [chi2, dof, p, cramer_v]
 })
 print(chi2_res.round(4).to_html(classes=['table', 'table-bordered'], index=False))
+
+print("<div class='mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-md text-slate-800'>")
+print("<h4 class='font-bold text-blue-900 mb-2'>Interprétation des Résultats</h4>")
+interp_chi2 = "Association statistiquement significative entre les deux variables" if p < 0.05 else "Pas d'association statistiquement significative"
+print(f"<p class='mb-1'><b>Chi-2 :</b> {interp_chi2} (p={p:.4f}).</p>")
+if p < 0.05:
+    if cramer_v < 0.1: force = "très faible"
+    elif cramer_v < 0.3: force = "faible"
+    elif cramer_v < 0.5: force = "moyenne"
+    else: force = "forte"
+    print(f"<p class='mb-1'><b>V de Cramer :</b> La force de l'association est {force} ({cramer_v:.2f}).</p>")
+print("</div>")
 `;
       }
 

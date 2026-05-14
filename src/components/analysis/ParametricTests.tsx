@@ -271,15 +271,18 @@ else:
         print("<h4>3. Analyse Post-Hoc (Tukey HSD) avec Lettres</h4>")
         tukey = pairwise_tukeyhsd(endog=data[target], groups=data[group_var], alpha=0.05)
         
+        tukey_df = pd.DataFrame(tukey._results_table.data[1:], columns=tukey._results_table.data[0])
+        print(tukey_df.to_html(classes=['table', 'table-bordered', 'mb-4'], index=False))
+        
         # CLD Logic
         def get_cld(gnames, gmeans, tres):
             n = len(gnames)
             adj = np.ones((n, n), dtype=bool)
             g_to_idx = {g: i for i, g in enumerate(gnames)}
             
-            for i in range(len(tres.reject)):
-                g1, g2 = tres.groupsunique[tres.group1[i]], tres.groupsunique[tres.group2[i]]
-                if tres.reject[i]:
+            for row in tres._results_table.data[1:]:
+                g1, g2, reject = row[0], row[1], row[6]
+                if reject:
                     idx1, idx2 = g_to_idx[g1], g_to_idx[g2]
                     adj[idx1, idx2] = adj[idx2, idx1] = False
             

@@ -111,7 +111,7 @@ print("<div class='mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-md t
 print("<h4 class='font-bold text-blue-900 mb-2'>Interprétation des Résultats</h4>")
 interp_df = pd.DataFrame({
     'Aspect': ['Significativité', 'Comparaison'],
-    'Résultat': [interp_pval, f"Différence de distribution significative entre {var1} et {var2}." if p < 0.05 else f"Pas de différence significative entre {var1} et {var2}."]
+    'Résultat': [interp_pval, "Différence de distribution significative entre ${var1} et ${var2}." if p < 0.05 else "Pas de différence significative entre ${var1} et ${var2}."]
 })
 print(interp_df.to_html(classes=['table', 'table-bordered', 'w-full'], index=False))
 print("</div>")

@@ -43,27 +43,45 @@ const tree: Node = {
     },
     {
       id: 'relationships',
-      title: 'Explorer des relations',
-      description: 'Chercher si deux variables sont liées entre elles.',
+      title: 'Explorer des relations / associations',
+      description: 'Chercher si des variables sont liées entre elles.',
       icon: <Activity className="w-5 h-5 text-emerald-500" />,
       children: [
         {
           id: 'rel_quali_quali',
-          title: 'Deux variables qualitatives',
-          description: 'ex: Lien entre le genre et le choix d\'un produit.',
+          title: 'Variables qualitatives',
+          description: 'ex: Lien entre le genre et le choix de produit, ou proportions appariées.',
           icon: <ChevronRight className="w-4 h-4" />,
-          recommendation: {
-            text: 'Utilisez le Test du Khi-deux (Association).',
-            action: 'tests'
-          }
+          children: [
+            {
+               id: 'rel_chi2',
+               title: 'Indépendance ou Ajustement',
+               description: 'Chi-2 d\'indépendance (2 variables) ou d\'ajustement (1 variable vs modèle).',
+               icon: <ChevronRight className="w-4 h-4" />,
+               recommendation: {
+                 text: 'Utilisez les Tests d\'Association (Chi-2).',
+                 action: 'tests'
+               }
+            },
+            {
+               id: 'rel_mcnemar',
+               title: 'Variables Appariées',
+               description: 'Comparer deux mesures chez les mêmes individus (ex: réponses avant/après).',
+               icon: <ChevronRight className="w-4 h-4" />,
+               recommendation: {
+                 text: 'Utilisez les Tests d\'Association (Test de McNemar).',
+                 action: 'tests'
+               }
+            }
+          ]
         },
         {
           id: 'rel_quanti_quanti',
-          title: 'Deux variables quantitatives',
-          description: 'ex: Lien entre l\'âge et le revenu.',
+          title: 'Variables quantitatives',
+          description: 'ex: Lien ou relation entre l\'âge et le revenu.',
           icon: <ChevronRight className="w-4 h-4" />,
           recommendation: {
-            text: 'Utilisez la Corrélation de Pearson ou Spearman.',
+            text: 'Utilisez les Corrélations (Pearson/Spearman) dans Tests d\'Association.',
             action: 'tests'
           }
         }
@@ -77,8 +95,8 @@ const tree: Node = {
       children: [
         {
           id: 'comp_2',
-          title: 'Comparer 2 groupes',
-          description: 'ex: Hommes vs Femmes.',
+          title: 'Comparer 2 groupes ou 2 mesures',
+          description: 'ex: Hommes vs Femmes (Indépendants) ou Avant vs Après (Appariés).',
           icon: <ChevronRight className="w-4 h-4" />,
           children: [
             {
@@ -87,17 +105,17 @@ const tree: Node = {
               description: 'Distribution en cloche (Gaussienne).',
               icon: <ChevronRight className="w-4 h-4" />,
               recommendation: {
-                text: 'Utilisez le Test T de Student.',
+                text: 'Utilisez le Test T de Student (Indépendant ou Apparié).',
                 action: 'tests'
               }
             },
             {
               id: 'comp_2_non_norm',
-              title: 'Données Non-Normales',
+              title: 'Données Non-Normales / Petits cibles',
               description: 'Petits échantillons ou distribution asymétrique.',
               icon: <ChevronRight className="w-4 h-4" />,
               recommendation: {
-                text: 'Utilisez le Test de Mann-Whitney.',
+                text: 'Utilisez le Test de Mann-Whitney (Indépendants) ou Wilcoxon (Appariés).',
                 action: 'tests'
               }
             }
@@ -140,22 +158,40 @@ const tree: Node = {
       icon: <Target className="w-5 h-5 text-rose-500" />,
       children: [
         {
-          id: 'pred_simple',
-          title: 'Un seul prédicteur',
-          description: 'ex: Prédire le poids en fonction de la taille.',
+          id: 'pred_quanti',
+          title: 'Prédire une valeur numérique (Continue)',
+          description: 'ex: Prédire un score ou un prix.',
           icon: <ChevronRight className="w-4 h-4" />,
-          recommendation: {
-            text: 'Utilisez la Régression Linéaire Simple.',
-            action: 'regression'
-          }
+          children: [
+            {
+              id: 'pred_simple',
+              title: 'Un seul prédicteur',
+              description: 'ex: Prédire le poids en fonction de la taille.',
+              icon: <ChevronRight className="w-4 h-4" />,
+              recommendation: {
+                text: 'Utilisez la Régression Linéaire Simple.',
+                action: 'regression'
+              }
+            },
+            {
+              id: 'pred_multi',
+              title: 'Plusieurs prédicteurs',
+              description: 'ex: Prédire le succès en fonction de l\'âge, l\'étude et l\'expérience.',
+              icon: <ChevronRight className="w-4 h-4" />,
+              recommendation: {
+                text: 'Utilisez la Régression Linéaire Multiple.',
+                action: 'regression'
+              }
+            }
+          ]
         },
         {
-          id: 'pred_multi',
-          title: 'Plusieurs prédicteurs',
-          description: 'ex: Prédire le succès en fonction de l\'âge, l\'étude et l\'expérience.',
+          id: 'pred_quali',
+          title: 'Prédire une classification (ex: Oui/Non)',
+          description: 'ex: Prédire si un client va acheter ou non.',
           icon: <ChevronRight className="w-4 h-4" />,
           recommendation: {
-            text: 'Utilisez la Régression Linéaire Multiple.',
+            text: 'Utilisez la Régression Logistique.',
             action: 'regression'
           }
         }

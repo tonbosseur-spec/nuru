@@ -151,7 +151,7 @@ export function ResultsArea() {
        
        return (
             <div className="w-full overflow-hidden space-y-4">
-              {beforeHtml && <div dangerouslySetInnerHTML={{ __html: beforeHtml }} className="mb-4" />}
+              {beforeHtml && <div dangerouslySetInnerHTML={{ __html: beforeHtml }} className="mb-4 results-content overflow-x-auto" />}
               
               {parts.slice(1).map((part, idx) => {
                  const [jsonString, ...htmlParts] = part.split('__PLOTLY_JSON_END__');

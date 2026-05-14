@@ -78,8 +78,11 @@ elif skew < -0.5:
 else:
     interp = "Distribution approximativement symétrique."
 
-res_df.loc[len(res_df)] = ['Interprétation (Asymétrie)', interp]
 print(res_df.round(4).to_html(index=False, classes=['table', 'table-bordered']))
+print("<div class='mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-md text-slate-800'>")
+print("<h4 class='font-bold text-blue-900 mb-2'>Interprétation des Résultats</h4>")
+print(f"<p class='mb-1'><b>Asymétrie (Skewness) :</b> {interp}</p>")
+print("</div>")
 `;
       }
       

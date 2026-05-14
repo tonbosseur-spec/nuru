@@ -61,7 +61,7 @@ export function AppLayout() {
     switch (activeTab) {
       case 'fichier': return <div className="p-8"><DataImport /></div>;
       case 'donnees': return <DataTabView />;
-      case 'assistant': return <div className="py-8"><AnalysisAssistant onNavigation={(tab) => setActiveTab(tab)} /></div>;
+      case 'assistant': return <div className="p-8 h-full overflow-y-auto"><AnalysisAssistant onNavigation={(tab) => setActiveTab(tab)} /></div>;
       case 'descriptives': return <DescriptiveArea />;
       case 'tests': return <TestsArea />;
       case 'regression': return <RegressionArea />;
@@ -144,67 +144,75 @@ export function AppLayout() {
 
       <div className="flex flex-1 overflow-hidden relative">
         {/* Left menu */}
-        <aside className={`bg-[#f3f3f3] border-r border-[#e5e5e5] flex flex-col z-0 shrink-0 transition-all duration-300 absolute md:relative h-full ${isSidebarOpen ? 'w-60 translate-x-0' : 'w-60 -translate-x-full md:w-0 md:translate-x-0 md:opacity-0 md:pointer-events-none md:overflow-hidden'} z-20`}>
-          <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 w-60">
+        <aside className={`bg-[#f3f3f3] border-r border-[#e5e5e5] flex flex-col z-0 shrink-0 transition-all duration-300 absolute md:relative h-full ${isSidebarOpen ? 'w-60 translate-x-0' : 'w-60 -translate-x-full md:w-16 md:translate-x-0'} z-20`}>
+          <div className={`flex-1 overflow-y-auto ${isSidebarOpen ? 'px-3' : 'px-2'} py-4 space-y-6 transition-all duration-300`}>
             
             {/* Group: Espace de travail */}
             <div>
-              <div className="px-3 mb-1 text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Espace de travail</div>
+              <div className={`px-3 mb-1 text-[11px] font-semibold text-slate-500 uppercase tracking-wide truncate transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 md:hidden'}`}>Espace de travail</div>
               <div className="space-y-0.5">
-                <button onClick={() => setActiveTab('fichier')} className={`w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors ${activeTab === 'fichier' ? 'bg-[#e0e0e0] font-medium text-slate-900 mx-0' : 'text-slate-700 hover:bg-[#ebebeb] mx-0'}`}>
-                  <FolderOpen className="w-4 h-4 mr-2.5 opacity-70" /> Importer
+                <button onClick={() => setActiveTab('fichier')} className={`w-full flex items-center ${isSidebarOpen ? 'px-3 justify-start' : 'justify-center'} py-1.5 text-[13px] rounded-md transition-all ${activeTab === 'fichier' ? 'bg-[#e0e0e0] font-medium text-slate-900' : 'text-slate-700 hover:bg-[#ebebeb]'}`} title={!isSidebarOpen ? "Importer" : ""}>
+                  <FolderOpen className={`w-4 h-4 opacity-70 shrink-0 ${isSidebarOpen ? 'mr-2.5' : ''}`} /> 
+                  {isSidebarOpen && <span className="truncate">Importer</span>}
                 </button>
-                <button onClick={() => setActiveTab('donnees')} className={`w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors ${activeTab === 'donnees' ? 'bg-[#e0e0e0] font-medium text-slate-900 mx-0' : 'text-slate-700 hover:bg-[#ebebeb] mx-0'}`}>
-                  <Table2 className="w-4 h-4 mr-2.5 opacity-70" /> Données
+                <button onClick={() => setActiveTab('donnees')} className={`w-full flex items-center ${isSidebarOpen ? 'px-3 justify-start' : 'justify-center'} py-1.5 text-[13px] rounded-md transition-all ${activeTab === 'donnees' ? 'bg-[#e0e0e0] font-medium text-slate-900' : 'text-slate-700 hover:bg-[#ebebeb]'}`} title={!isSidebarOpen ? "Données" : ""}>
+                  <Table2 className={`w-4 h-4 opacity-70 shrink-0 ${isSidebarOpen ? 'mr-2.5' : ''}`} /> 
+                  {isSidebarOpen && <span className="truncate">Données</span>}
                 </button>
-                <button onClick={() => setActiveTab('code')} className={`w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors ${activeTab === 'code' ? 'bg-[#e0e0e0] font-medium text-slate-900 mx-0' : 'text-slate-700 hover:bg-[#ebebeb] mx-0'}`}>
-                  <TerminalSquare className="w-4 h-4 mr-2.5 opacity-70" /> Code source
+                <button onClick={() => setActiveTab('code')} className={`w-full flex items-center ${isSidebarOpen ? 'px-3 justify-start' : 'justify-center'} py-1.5 text-[13px] rounded-md transition-all ${activeTab === 'code' ? 'bg-[#e0e0e0] font-medium text-slate-900' : 'text-slate-700 hover:bg-[#ebebeb]'}`} title={!isSidebarOpen ? "Code source" : ""}>
+                  <TerminalSquare className={`w-4 h-4 opacity-70 shrink-0 ${isSidebarOpen ? 'mr-2.5' : ''}`} /> 
+                  {isSidebarOpen && <span className="truncate">Code source</span>}
                 </button>
               </div>
             </div>
 
             {/* Group: Analyses Statistiques */}
             <div>
-              <div className="px-3 mb-1 text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Analyses</div>
+              <div className={`px-3 mb-1 text-[11px] font-semibold text-slate-500 uppercase tracking-wide truncate transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 md:hidden'}`}>Analyses</div>
               <div className="space-y-0.5">
-                <button onClick={() => setActiveTab('descriptives')} className={`w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors ${activeTab === 'descriptives' ? 'bg-[#e0e0e0] font-medium text-slate-900 mx-0' : 'text-slate-700 hover:bg-[#ebebeb] mx-0'}`}>
-                  <FileText className="w-4 h-4 mr-2.5 opacity-70" /> Descriptives
+                <button onClick={() => setActiveTab('descriptives')} className={`w-full flex items-center ${isSidebarOpen ? 'px-3 justify-start' : 'justify-center'} py-1.5 text-[13px] rounded-md transition-all ${activeTab === 'descriptives' ? 'bg-[#e0e0e0] font-medium text-slate-900' : 'text-slate-700 hover:bg-[#ebebeb]'}`} title={!isSidebarOpen ? "Descriptives" : ""}>
+                  <FileText className={`w-4 h-4 opacity-70 shrink-0 ${isSidebarOpen ? 'mr-2.5' : ''}`} /> 
+                  {isSidebarOpen && <span className="truncate">Descriptives</span>}
                 </button>
-                <button onClick={() => setActiveTab('tests')} className={`w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors ${activeTab === 'tests' ? 'bg-[#e0e0e0] font-medium text-slate-900 mx-0' : 'text-slate-700 hover:bg-[#ebebeb] mx-0'}`}>
-                  <Activity className="w-4 h-4 mr-2.5 opacity-70" /> Tests d'hypothèses
+                <button onClick={() => setActiveTab('tests')} className={`w-full flex items-center ${isSidebarOpen ? 'px-3 justify-start' : 'justify-center'} py-1.5 text-[13px] rounded-md transition-all ${activeTab === 'tests' ? 'bg-[#e0e0e0] font-medium text-slate-900' : 'text-slate-700 hover:bg-[#ebebeb]'}`} title={!isSidebarOpen ? "Tests d'hypothèses" : ""}>
+                  <Activity className={`w-4 h-4 opacity-70 shrink-0 ${isSidebarOpen ? 'mr-2.5' : ''}`} /> 
+                  {isSidebarOpen && <span className="truncate">Tests d'hypothèses</span>}
                 </button>
-                <button onClick={() => setActiveTab('regression')} className={`w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors ${activeTab === 'regression' ? 'bg-[#e0e0e0] font-medium text-slate-900 mx-0' : 'text-slate-700 hover:bg-[#ebebeb] mx-0'}`}>
-                  <FileLineChart className="w-4 h-4 mr-2.5 opacity-70" /> Régressions
+                <button onClick={() => setActiveTab('regression')} className={`w-full flex items-center ${isSidebarOpen ? 'px-3 justify-start' : 'justify-center'} py-1.5 text-[13px] rounded-md transition-all ${activeTab === 'regression' ? 'bg-[#e0e0e0] font-medium text-slate-900' : 'text-slate-700 hover:bg-[#ebebeb]'}`} title={!isSidebarOpen ? "Régressions" : ""}>
+                  <FileLineChart className={`w-4 h-4 opacity-70 shrink-0 ${isSidebarOpen ? 'mr-2.5' : ''}`} /> 
+                  {isSidebarOpen && <span className="truncate">Régressions</span>}
                 </button>
-                <button onClick={() => setActiveTab('graphiques')} className={`w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors ${activeTab === 'graphiques' ? 'bg-[#e0e0e0] font-medium text-slate-900 mx-0' : 'text-slate-700 hover:bg-[#ebebeb] mx-0'}`}>
-                  <PieChart className="w-4 h-4 mr-2.5 opacity-70" /> Graphiques
+                <button onClick={() => setActiveTab('graphiques')} className={`w-full flex items-center ${isSidebarOpen ? 'px-3 justify-start' : 'justify-center'} py-1.5 text-[13px] rounded-md transition-all ${activeTab === 'graphiques' ? 'bg-[#e0e0e0] font-medium text-slate-900' : 'text-slate-700 hover:bg-[#ebebeb]'}`} title={!isSidebarOpen ? "Graphiques" : ""}>
+                  <PieChart className={`w-4 h-4 opacity-70 shrink-0 ${isSidebarOpen ? 'mr-2.5' : ''}`} /> 
+                  {isSidebarOpen && <span className="truncate">Graphiques</span>}
                 </button>
               </div>
             </div>
 
             {/* Group: Sorties */}
             <div>
-              <div className="px-3 mb-1 text-[11px] font-semibold text-slate-500 uppercase tracking-wide flex items-center">
-                Sorties
-              </div>
+              <div className={`px-3 mb-1 text-[11px] font-semibold text-slate-500 uppercase tracking-wide truncate transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 md:hidden'}`}>Sorties</div>
               <div className="space-y-0.5">
-                <button onClick={() => setActiveTab('resultats')} className={`w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors ${activeTab === 'resultats' ? 'bg-[#e0e0e0] font-medium text-slate-900 mx-0' : 'text-slate-700 hover:bg-[#ebebeb] mx-0'}`}>
-                  <TerminalSquare className="w-4 h-4 mr-2.5 opacity-70" /> Résultats
+                <button onClick={() => setActiveTab('resultats')} className={`w-full flex items-center ${isSidebarOpen ? 'px-3 justify-start' : 'justify-center'} py-1.5 text-[13px] rounded-md transition-all ${activeTab === 'resultats' ? 'bg-[#e0e0e0] font-medium text-slate-900' : 'text-slate-700 hover:bg-[#ebebeb]'}`} title={!isSidebarOpen ? "Résultats" : ""}>
+                  <TerminalSquare className={`w-4 h-4 opacity-70 shrink-0 ${isSidebarOpen ? 'mr-2.5' : ''}`} /> 
+                  {isSidebarOpen && <span className="truncate">Résultats</span>}
                 </button>
-                <button onClick={() => setActiveTab('export')} className={`w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors ${activeTab === 'export' ? 'bg-[#e0e0e0] font-medium text-slate-900 mx-0' : 'text-slate-700 hover:bg-[#ebebeb] mx-0'}`}>
-                  <Download className="w-4 h-4 mr-2.5 opacity-70" /> Exporter
+                <button onClick={() => setActiveTab('export')} className={`w-full flex items-center ${isSidebarOpen ? 'px-3 justify-start' : 'justify-center'} py-1.5 text-[13px] rounded-md transition-all ${activeTab === 'export' ? 'bg-[#e0e0e0] font-medium text-slate-900' : 'text-slate-700 hover:bg-[#ebebeb]'}`} title={!isSidebarOpen ? "Exporter" : ""}>
+                  <Download className={`w-4 h-4 opacity-70 shrink-0 ${isSidebarOpen ? 'mr-2.5' : ''}`} /> 
+                  {isSidebarOpen && <span className="truncate">Exporter</span>}
                 </button>
               </div>
             </div>
 
             {/* Group: IA */}
             <div>
-              <div className="px-3 mb-1 text-[11px] font-semibold text-indigo-500 uppercase tracking-wide flex items-center">
-                <Sparkles className="w-3 h-3 mr-1" /> Outils AI
+              <div className={`px-3 mb-1 text-[11px] font-semibold text-indigo-500 uppercase tracking-wide flex items-center truncate transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 md:hidden'}`}>
+                <Sparkles className="w-3 h-3 mr-1" /> {isSidebarOpen && "Outils AI"}
               </div>
               <div className="space-y-0.5">
-                <button onClick={() => setActiveTab('assistant')} className={`w-full flex items-center px-3 py-1.5 text-[13px] rounded-md transition-colors ${activeTab === 'assistant' ? 'bg-[#e0e0e0] font-medium text-slate-900 mx-0' : 'text-slate-700 hover:bg-[#ebebeb] mx-0'}`}>
-                  <Component className="w-4 h-4 mr-2.5 opacity-70" /> Assistant d'analyse
+                <button onClick={() => setActiveTab('assistant')} className={`w-full flex items-center ${isSidebarOpen ? 'px-3 justify-start' : 'justify-center'} py-1.5 text-[13px] rounded-md transition-all ${activeTab === 'assistant' ? 'bg-[#e0e0e0] font-medium text-slate-900' : 'text-slate-700 hover:bg-[#ebebeb]'}`} title={!isSidebarOpen ? "Assistant d'analyse" : ""}>
+                  <Component className={`w-4 h-4 opacity-70 shrink-0 ${isSidebarOpen ? 'mr-2.5' : ''}`} /> 
+                  {isSidebarOpen && <span className="truncate">Assistant d'analyse</span>}
                 </button>
               </div>
             </div>
