@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useStore, ResultItem, isDesktop } from '@/store';
 import { ScrollArea, ScrollBar } from './ui/scroll-area';
-import { Trash2, Code, Copy, ChevronDown, ChevronRight, Library, TerminalSquare, Download } from 'lucide-react';
+import { Trash2, Code, Copy, ChevronDown, ChevronRight, Library, TerminalSquare, Download, Image as ImageIcon } from 'lucide-react';
 import { Button } from './ui/button';
+import Plotly from 'plotly.js-dist-min';
 import Plot from 'react-plotly.js';
 import { toast } from 'sonner';
 
@@ -120,7 +121,7 @@ export function ResultsArea() {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
       toast.success("Résultat exporté (HTML)");
     } catch (err: any) {
       toast.error("Erreur d'export: " + err.message);
@@ -169,14 +170,38 @@ export function ResultsArea() {
                             config={{ 
                               responsive: true, 
                               displayModeBar: true,
-                              modeBarButtonsToRemove: ['lasso2d', 'select2d'],
-                              toImageButtonOptions: {
-                                format: 'png',
-                                filename: 'nuru_analytics_plot',
-                                height: 500,
-                                width: 700,
-                                scale: 2
-                              }
+                              modeBarButtonsToRemove: ['lasso2d', 'select2d', 'toImage'],
+                              modeBarButtonsToAdd: [{
+                                name: 'Télécharger le graphique (PNG)',
+                                icon: Plotly.Icons.camera,
+                                click: (gd: any) => {
+                                  Plotly.toImage(gd, {format: 'png', height: 600, width: 800, scale: 2}).then((dataUrl: string) => {
+                                    const base64Data = dataUrl.split(',')[1];
+                                    if (isDesktop()) {
+                                      (window as any).pywebview.api.save_file_dialog(base64Data, 'graphique.png').then((res: any) => {
+                                        if (res.success) {
+                                          toast.success(`Image PNG enregistrée !`);
+                                        } else if (res.error && res.error !== 'Cancelled') {
+                                          toast.error("Erreur d'export: " + res.error);
+                                        }
+                                      });
+                                    } else {
+                                      // Convert Data URI to Blob to trigger standard browser saving behaviors
+                                      const bytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+                                      const blob = new Blob([bytes], { type: 'image/png' });
+                                      const url = URL.createObjectURL(blob);
+                                      const a = document.createElement('a');
+                                      a.href = url;
+                                      a.download = 'graphique.png';
+                                      document.body.appendChild(a);
+                                      a.click();
+                                      document.body.removeChild(a);
+                                      setTimeout(() => URL.revokeObjectURL(url), 5000);
+                                      toast.success("Image PNG téléchargée");
+                                    }
+                                  });
+                                }
+                              }]
                             }}
                           />
                         </div>

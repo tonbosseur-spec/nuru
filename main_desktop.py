@@ -109,9 +109,15 @@ class Api:
 
         if result:
             try:
-                with open(result, 'w', encoding='utf-8') as f:
-                    f.write(content)
-                return {"success": True, "path": result}
+                if ext == '.png':
+                    import base64
+                    with open(result, 'wb') as f:
+                        f.write(base64.b64decode(content))
+                    return {"success": True, "path": result}
+                else:
+                    with open(result, 'w', encoding='utf-8') as f:
+                        f.write(content)
+                    return {"success": True, "path": result}
             except Exception as e:
                 return {"success": False, "error": str(e)}
         return {"success": False, "error": "Cancelled"}

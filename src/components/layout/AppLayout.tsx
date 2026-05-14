@@ -8,7 +8,7 @@ import { DataTranscription } from '../DataTranscription';
 import { AnalysisAssistant } from '../AnalysisAssistant';
 import { Toaster } from '../ui/sonner';
 import { Button } from '../ui/button';
-import { Home, Edit2, Save, Zap, Sparkles, FileLineChart, Table2, FolderOpen, TerminalSquare, PieChart, Activity, Download, FileText, Component } from 'lucide-react';
+import { Home, Edit2, Save, Zap, Sparkles, FileLineChart, Table2, FolderOpen, TerminalSquare, PieChart, Activity, Download, FileText, Component, ChevronLeft, ChevronRight, Menu } from 'lucide-react';
 
 import { DescriptiveArea } from '../areas/DescriptiveArea';
 import { TestsArea } from '../areas/TestsArea';
@@ -33,9 +33,13 @@ export function AppLayout() {
   const { isTranscriptionMode } = useTranscriptionStore();
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
     engine.init();
+    if (window.innerWidth < 768) {
+      setIsSidebarOpen(false);
+    }
   }, []);
 
   const handleNameSave = () => {
@@ -73,7 +77,11 @@ export function AppLayout() {
     <div className="flex h-screen w-full bg-slate-50 flex-col overflow-hidden font-sans">
       <header className="h-14 border-b bg-white flex items-center px-4 justify-between shrink-0 shadow-sm z-10">
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="icon" onClick={closeWorkspace} title="Accueil" className="mr-2">
+          <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)} title={isSidebarOpen ? "Fermer le menu" : "Ouvrir le menu"} className="mr-2">
+            <Menu className="w-5 h-5 text-slate-600" />
+          </Button>
+
+          <Button variant="ghost" size="icon" onClick={closeWorkspace} title="Accueil" className="mr-2 hidden md:flex">
             <Home className="w-5 h-5 text-slate-600" />
           </Button>
           
@@ -81,7 +89,7 @@ export function AppLayout() {
             <div className="bg-indigo-600 text-white p-1.25 rounded-lg shrink-0 flex items-center justify-center mr-2.5 shadow-sm">
                <Zap className="w-4.5 h-4.5 fill-current" />
             </div>
-            Nuru Analytics
+            <span className="hidden sm:inline">Nuru Analytics</span>
           </div>
 
           {isEditingName ? (
@@ -134,10 +142,10 @@ export function AppLayout() {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
         {/* Left menu */}
-        <aside className="w-60 bg-[#f3f3f3] border-r border-[#e5e5e5] flex flex-col z-0 shrink-0">
-          <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+        <aside className={`bg-[#f3f3f3] border-r border-[#e5e5e5] flex flex-col z-0 shrink-0 transition-all duration-300 absolute md:relative h-full ${isSidebarOpen ? 'w-60 translate-x-0' : 'w-60 -translate-x-full md:w-0 md:translate-x-0 md:opacity-0 md:pointer-events-none md:overflow-hidden'} z-20`}>
+          <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 w-60">
             
             {/* Group: Espace de travail */}
             <div>
@@ -203,6 +211,13 @@ export function AppLayout() {
 
           </div>
         </aside>
+
+        {isSidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black/20 z-10 md:hidden" 
+            onClick={() => setIsSidebarOpen(false)} 
+          />
+        )}
 
         {/* Center Content */}
         <main className="flex-1 flex flex-col min-w-0 bg-slate-50 overflow-hidden">

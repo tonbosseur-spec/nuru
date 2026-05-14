@@ -130,17 +130,27 @@
   
   /* Ajout de styles pour les tableaux de résultats (DataFrames) */
   .results-content table {
-    @apply w-full border-collapse my-4 text-sm;
+    @apply w-full border-collapse my-4 text-sm shadow-sm;
     min-width: 400px;
   }
   
   .results-content th {
-    @apply bg-slate-100 font-bold p-2.5 text-left border border-slate-200 text-slate-700;
+    @apply bg-slate-200/80 font-bold p-2.5 text-left border border-slate-400 text-slate-800;
   }
   
   .results-content td {
-    @apply p-2.5 border border-slate-200 text-slate-600;
-    vertical-align: top;
+    @apply p-2.5 border border-slate-300 text-slate-700;
+    vertical-align: middle;
+  }
+
+  /* Pour les tables de statsmodels qui peuvent avoir des structures complexes */
+  .results-content table.simpletable {
+    @apply border border-slate-400;
+  }
+  
+  .results-content table.simpletable td,
+  .results-content table.simpletable th {
+    @apply border border-slate-300 p-2 text-sm;
   }
 
   .results-content tr:nth-child(even) {

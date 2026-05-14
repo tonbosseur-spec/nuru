@@ -56,12 +56,18 @@ print(f"<h3>Régression Linéaire Multiple: {y.name} ~ {', '.join(indep_vars)}</
 # Table
 print(f"<h4>Coefficients et tests</h4>")
 print(model.summary().tables[1].as_html())
-print(f"<p className='mt-2'><b>R²:</b> {model.rsquared:.4f} | <b>R² ajusté:</b> {model.rsquared_adj:.4f} | <b>F-statistic:</b> {model.fvalue:.4f} (p={model.f_pvalue:.4e})</p>")
+
+print(f"<h4>Statistiques Globales du Modèle</h4>")
+stats_global = pd.DataFrame({
+    'Métrique': ['R²', 'R² ajusté', 'F-statistic', 'p-value (F)'],
+    'Valeur': [model.rsquared, model.rsquared_adj, model.fvalue, model.f_pvalue]
+})
+print(stats_global.round(4).to_html(classes=['table', 'table-bordered'], index=False))
 
 # VIF
 print(f"<h4>Multicolinéarité (VIF)</h4>")
 vifs = [variance_inflation_factor(X_with_const.values, i) for i in range(1, X_with_const.shape[1])]
-vif_html = "<table className='table table-bordered w-full'><tr><th>Variable</th><th>VIF</th></tr>"
+vif_html = "<table class='table table-bordered w-full'><tr><th>Variable</th><th>VIF</th></tr>"
 for var, vif in zip(indep_vars, vifs):
     color = "red" if vif > 5 else "green"
     vif_html += f"<tr><td>{var}</td><td style='color:{color}'>{vif:.2f}</td></tr>"
@@ -99,14 +105,22 @@ interp_r2 = f"Le modèle explique {r2*100:.1f}% de la variance de {y.name}."
 
 significant_vars = [model.pvalues.index[i] for i, p in enumerate(model.pvalues) if p < 0.05 and model.pvalues.index[i] != 'const']
 
-print("<div className='mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-md text-slate-800'>")
-print("<h4 className='font-bold text-blue-900 mb-2'>Interprétation des Résultats</h4>")
-print(f"<p className='mb-1'><b>Significativité Globale :</b> {interp_pval}</p>")
-print(f"<p className='mb-1'><b>Pouvoir explicatif :</b> {interp_r2}</p>")
+print("<div class='mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-md text-slate-800'>")
+print("<h4 class='font-bold text-blue-900 mb-2'>Interprétation des Résultats</h4>")
+
+interp_res = [
+    {'Aspect': 'Significativité Globale', 'Résultat': interp_pval},
+    {'Aspect': 'Pouvoir explicatif', 'Résultat': interp_r2}
+]
+
 if len(significant_vars) > 0:
-    print(f"<p><b>Variables significatives (p < 0.05) :</b> {', '.join(significant_vars)}.</p>")
+    for var in significant_vars:
+        interp_res.append({'Aspect': f"Variable significative: {var}", 'Résultat': "p < 0.05"})
 else:
-    print("<p>Aucune variable explicative n'est individuellement significative (p < 0.05).</p>")
+    interp_res.append({'Aspect': "Variables significatives", 'Résultat': "Aucune (p >= 0.05)"})
+
+res_table = pd.DataFrame(interp_res)
+print(res_table.to_html(classes=['table', 'table-bordered'], index=False))
 print("</div>")
 
 # Importance des variables (Coefficients standardisés absolus)

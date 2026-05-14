@@ -60,41 +60,61 @@ from scipy import stats
 import pandas as pd
 import numpy as np
 
+def interpret_p(p):
+    if pd.isna(p): return "-"
+    return "Normal" if p >= 0.05 else "Non Normal"
+
 data = df['${selectedVar}'].dropna()
 results = []
 
 ${selectedTests.includes('shapiro') ? `
 # Shapiro-Wilk
-stat, p = stats.shapiro(data)
+try:
+    stat, p = stats.shapiro(data)
+except Exception:
+    stat, p = np.nan, np.nan
 results.append({'Test': 'Shapiro-Wilk', 'Statistic': stat, 'p-value': p, 'Interpretation': interpret_p(p)})
 ` : ''}
 
 ${selectedTests.includes('ks') ? `
 # Kolmogorov-Smirnov
-stat, p = stats.kstest(data, 'norm', args=(data.mean(), data.std()))
+try:
+    stat, p = stats.kstest(data, 'norm', args=(data.mean(), data.std()))
+except Exception:
+    stat, p = np.nan, np.nan
 results.append({'Test': 'Kolmogorov-Smirnov', 'Statistic': stat, 'p-value': p, 'Interpretation': interpret_p(p)})
 ` : ''}
 
 ${selectedTests.includes('jarque_bera') ? `
 # Jarque-Bera
-stat, p = stats.jarque_bera(data)
+try:
+    stat, p = stats.jarque_bera(data)
+except Exception:
+    stat, p = np.nan, np.nan
 results.append({'Test': 'Jarque-Bera', 'Statistic': stat, 'p-value': p, 'Interpretation': interpret_p(p)})
 ` : ''}
 
 ${selectedTests.includes('dagostino') ? `
 # D'Agostino-Pearson
-stat, p = stats.normaltest(data)
+try:
+    stat, p = stats.normaltest(data)
+except Exception:
+    stat, p = np.nan, np.nan
 results.append({'Test': "D'Agostino-Pearson", 'Statistic': stat, 'p-value': p, 'Interpretation': interpret_p(p)})
 ` : ''}
 
 ${selectedTests.includes('anderson') ? `
 # Anderson-Darling
-res = stats.anderson(data)
-# Anderson-Darling returns multiple values, let's take critical value at 5%
-stat = res.statistic
-crit = res.critical_values[2] # 5% level
-interp = "Normal" if stat < crit else "Not Normal"
-results.append({'Test': 'Anderson-Darling', 'Statistic': stat, 'p-value': None, 'Interpretation': f"{interp} (Crit: {crit:.4f})"})
+try:
+    res = stats.anderson(data)
+    stat = res.statistic
+    crit = res.critical_values[2] # 5% level
+    interp = "Normal" if stat < crit else "Not Normal"
+    interp_str = f"{interp} (Crit: {crit:.4f})"
+except Exception:
+    stat = np.nan
+    interp_str = "Erreur"
+results.append({'Test': 'Anderson-Darling', 'Statistic': stat, 'p-value': np.nan, 'Interpretation': interp_str})
 ` : ''}
 
 res_df = pd.DataFrame(results)
@@ -102,9 +122,9 @@ res_df = pd.DataFrame(results)
 print(f"<h3>Normality Analysis: ${selectedVar}</h3>")
 print(res_df.round(4).to_html(classes=['table', 'table-bordered'], index=False, na_rep='-'))
 
-print("<div className='mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-md text-slate-800'>")
-print("<h4 className='font-bold text-blue-900 mb-2'>Interprétation des Résultats</h4>")
-print("<p className='mb-1'>L'hypothèse nulle (H0) des tests de normalité postule que la distribution suit une loi normale. Une p-value inférieure à 0.05 signifie que la distribution <b>s'écarte significativement de la normalité</b>.</p>")
+print("<div class='mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-md text-slate-800'>")
+print("<h4 class='font-bold text-blue-900 mb-2'>Interprétation des Résultats</h4>")
+print("<p class='mb-1'>L'hypothèse nulle (H0) des tests de normalité postule que la distribution suit une loi normale. Une p-value inférieure à 0.05 signifie que la distribution <b>s'écarte significativement de la normalité</b>.</p>")
 print("</div>")
 
 if px:

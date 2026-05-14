@@ -44,13 +44,23 @@ cramers_v = np.sqrt(phi2corr / min((kcorr-1), (rcorr-1)))
 
 print(f"<h3>Association: ${var1} vs ${var2}</h3>")
 print(contingency.to_html(classes=['table', 'table-bordered']))
-print(f"<p className='mt-4'><b>Chi-Square:</b> {chi2:.4f}, <b>p-value:</b> {p:.4e}</p>")
-print(f"<p><b>Cramer's V:</b> {cramers_v:.4f}</p>")
-interp_pval = "Il existe une association statistiquement significative entre les deux variables (p < 0.05)." if p < 0.05 else "Il n'y a pas d'association statistiquement significative (p >= 0.05)."
-print("<div className='mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-md text-slate-800'>")
-print("<h4 className='font-bold text-blue-900 mb-2'>Interprétation des Résultats</h4>")
-print(f"<p className='mb-1'><b>Significativité :</b> {interp_pval}</p>")
-print(f"<p><b>Taille de l'effet (Cramer's V) :</b> {cramers_v:.4f} (Mesure l'intensité de l'association, de 0 à 1).</p>")
+
+# Table des tests
+res_tests = pd.DataFrame({
+    'Test': ['Chi-Square', "V de Cramer"],
+    'Valeur': [chi2, cramers_v],
+    'p-value': [p, None]
+})
+print(f"<div class='mt-4'><h4>Tests d'association</h4></div>")
+print(res_tests.round(4).to_html(classes=['table', 'table-bordered'], index=False, na_rep='-'))
+interp_pval = "Association statistiquement significative (p < 0.05)." if p < 0.05 else "Pas d'association statistiquement significative (p >= 0.05)."
+print("<div class='mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-md text-slate-800'>")
+print("<h4 class='font-bold text-blue-900 mb-2'>Interprétation des Résultats</h4>")
+interp_df = pd.DataFrame({
+    'Aspect': ['Significativité', "Intensité (V de Cramer)"],
+    'Résultat': [interp_pval, f"{cramers_v:.4f} (Echelle 0 à 1)"]
+})
+print(interp_df.to_html(classes=['table', 'table-bordered', 'w-full'], index=False))
 print("</div>")
 
 `;

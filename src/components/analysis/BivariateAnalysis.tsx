@@ -51,9 +51,12 @@ corr_p, p_p = stats.pearsonr(x, y)
 corr_s, p_s = stats.spearmanr(x, y)
 
 print("<h4>Calculs de Corrélation et Association</h4>")
-print(f"<p><b>Covariance :</b> {covar:.4f}</p>")
-print(f"<p><b>Corrélation Pearson (linéaire) :</b> {corr_p:.4f} (p-value: {p_p:.4e})</p>")
-print(f"<p><b>Corrélation Spearman (rangs) :</b> {corr_s:.4f} (p-value: {p_s:.4e})</p>")
+corr_res = pd.DataFrame({
+    'Métrique': ['Covariance', 'Corrélation Pearson', 'Corrélation Spearman'],
+    'Valeur': [covar, corr_p, corr_s],
+    'p-value': [None, p_p, p_s]
+})
+print(corr_res.round(4).to_html(classes=['table', 'table-bordered'], index=False, na_rep='-'))
 `;
       if (showScatter) {
         code += `
@@ -87,10 +90,11 @@ else:
     cramer_v = np.sqrt(chi2 / (n * min_dim))
 
 print("<h4>Test d'indépendance (Chi-2) et Force de liaison</h4>")
-print(f"<p><b>Statistique Chi-2 :</b> {chi2:.4f}</p>")
-print(f"<p><b>Degrés de liberté :</b> {dof}</p>")
-print(f"<p><b>P-value :</b> {p:.4e}</p>")
-print(f"<p><b>V de Cramer :</b> {cramer_v:.4f}</p>")
+chi2_res = pd.DataFrame({
+    'Métrique': ['Statistique Chi-2', 'Degrés de liberté', 'P-value', 'V de Cramer'],
+    'Valeur': [chi2, dof, p, cramer_v]
+})
+print(chi2_res.round(4).to_html(classes=['table', 'table-bordered'], index=False))
 `;
       }
 

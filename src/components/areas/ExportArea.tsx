@@ -65,7 +65,7 @@ base64.b64encode(json_data.encode('utf-8')).decode('utf-8')
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
       
       toast.success(`Données exportées en ${format.toUpperCase()}`);
     } catch (err: any) {
@@ -105,7 +105,7 @@ base64.b64encode(json_data.encode('utf-8')).decode('utf-8')
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
       toast.success("Espace de travail exporté !");
     } catch (err: any) {
       toast.error("Erreur d'export: " + err.message);
@@ -253,7 +253,7 @@ base64.b64encode(json_data.encode('utf-8')).decode('utf-8')
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
     toast.success("Rapport HTML exporté !");
   };
 

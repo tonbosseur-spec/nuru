@@ -71,7 +71,13 @@ print(f"<h3>Régression Logistique: {y.name} ~ {', '.join(indep_vars)}</h3>")
 # Table
 print(f"<h4>Coefficients et tests</h4>")
 print(model.summary().tables[1].as_html())
-print(f"<p className='mt-2'><b>Pseudo R² (McFadden):</b> {model.prsquared:.4f} | <b>Log-Likelihood:</b> {model.llf:.4f} | <b>LL-Null:</b> {model.llnull:.4f}</p>")
+
+print(f"<h4>Statistiques Globales du Modèle</h4>")
+stats_global = pd.DataFrame({
+    'Métrique': ['Pseudo R² (McFadden)', 'Log-Likelihood', 'LL-Null', 'Prob (LR-stats)'],
+    'Valeur': [model.prsquared, model.llf, model.llnull, model.llr_pvalue]
+})
+print(stats_global.round(4).to_html(classes=['table', 'table-bordered'], index=False))
 
 # Odds Ratios
 print(f"<h4>Rapports de cotes (Odds Ratios)</h4>")
@@ -87,22 +93,28 @@ interp_pval = "Le modèle global est statistiquement significatif (p < 0.05)." i
 
 significant_vars = [model.pvalues.index[i] for i, p in enumerate(model.pvalues) if p < 0.05 and model.pvalues.index[i] != 'const']
 
-print("<div className='mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-md text-slate-800'>")
-print("<h4 className='font-bold text-blue-900 mb-2'>Interprétation des Résultats</h4>")
-print(f"<p className='mb-1'><b>Significativité Globale :</b> {interp_pval}</p>")
+print("<div class='mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-md text-slate-800'>")
+print("<h4 class='font-bold text-blue-900 mb-2'>Interprétation des Résultats</h4>")
+print(f"<p class='mb-1'><b>Significativité Globale :</b> {interp_pval}</p>")
 if len(significant_vars) > 0:
     print(f"<p><b>Variables significatives (p < 0.05) :</b> {', '.join(significant_vars)}.</p>")
 else:
     print("<p>Aucune variable explicative n'est individuellement significative (p < 0.05).</p>")
 
-print("<h5 class='font-bold mt-3 mb-1'>Interprétation des Odds Ratios:</h5><ul class='list-disc pl-5'>")
+# Interpretation text in table
+interp_odds = []
 for var in significant_vars:
     coef = odds_ratios[var]
     if coef > 1:
-        print(f"<li><b>{var}</b>: Pour chaque unité supplémentaire, les chances (odds) de l'événement augmentent de {(coef-1)*100:.1f}%.</li>")
+        text = f"Pour chaque unité supplémentaire, les chances (odds) augmentent de {(coef-1)*100:.1f}%."
     else:
-        print(f"<li><b>{var}</b>: Pour chaque unité supplémentaire, les chances (odds) de l'événement diminuent de {(1-coef)*100:.1f}%.</li>")
-print("</ul></div>")
+        text = f"Pour chaque unité supplémentaire, les chances (odds) diminuent de {(1-coef)*100:.1f}%."
+    interp_odds.append({'Variable': var, 'Interprétation (Odds Ratio)': text})
+
+if interp_odds:
+    print("<h5 class='font-bold mt-3 mb-1'>Interprétation des Odds Ratios:</h5>")
+    print(pd.DataFrame(interp_odds).to_html(classes=['table', 'table-bordered'], index=False))
+print("</div>")
 
 # Confusion matrix and ROC curve
 from sklearn.metrics import confusion_matrix, roc_curve, auc

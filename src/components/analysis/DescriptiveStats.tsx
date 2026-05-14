@@ -62,23 +62,24 @@ desc = {
 }
 import pandas as pd
 res_df = pd.DataFrame(list(desc.items()), columns=['Statistique', 'Valeur'])
-print(res_df.round(4).to_html(index=False, classes=['table', 'table-bordered']))
 
 # Interprétation auto skewness
 skew = desc['Asymétrie (Skewness)']
 if pd.isna(skew):
     interp = "Impossible de calculer l'asymétrie."
 elif skew > 1:
-    interp = "La variable présente une forte asymétrie positive (étalée vers la droite)."
+    interp = "Forte asymétrie positive (étalée à droite)."
 elif skew > 0.5:
-    interp = "La variable présente une légère asymétrie positive."
+    interp = "Légère asymétrie positive."
 elif skew < -1:
-    interp = "La variable présente une forte asymétrie négative (étalée vers la gauche)."
+    interp = "Forte asymétrie négative (étalée à gauche)."
 elif skew < -0.5:
-    interp = "La variable présente une légère asymétrie négative."
+    interp = "Légère asymétrie négative."
 else:
-    interp = "La distribution est approximativement symétrique."
-print(f"<p className='mt-2 p-3 bg-slate-50 border rounded'><b>Interprétation :</b> {interp}</p>")
+    interp = "Distribution approximativement symétrique."
+
+res_df.loc[len(res_df)] = ['Interprétation (Asymétrie)', interp]
+print(res_df.round(4).to_html(index=False, classes=['table', 'table-bordered']))
 `;
       }
       
