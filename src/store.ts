@@ -12,6 +12,16 @@ export interface WorkspaceSummary {
   lastModified: number;
 }
 
+export interface TransformationStep {
+  id: string;
+  type: string;
+  category: string;
+  params: any;
+  description: string;
+  enabled: boolean;
+  timestamp: number;
+}
+
 export interface WorkspaceData {
   id: string;
   name: string;
@@ -21,12 +31,17 @@ export interface WorkspaceData {
   rowCount: number;
   results: ResultItem[];
   codeHistory: string[];
+  pipeline?: TransformationStep[];
 }
 
 export interface ColumnInfo {
   name: string;
-  type: 'numeric' | 'categorical';
+  type: 'numeric' | 'categorical' | 'datetime';
   missing: number;
+  distinctCount?: number;
+  min?: number;
+  max?: number;
+  mean?: number;
 }
 
 export interface ResultItem {
@@ -55,6 +70,7 @@ interface AppState {
   rowCount: number;
   results: ResultItem[];
   codeHistory: string[];
+  pipeline: TransformationStep[];
   
   sidebarVisible: boolean;
   consoleVisible: boolean;
@@ -70,6 +86,12 @@ interface AppState {
   clearResults: () => void;
   toggleSidebar: () => void;
   toggleConsole: () => void;
+  
+  // Pipeline actions
+  setPipeline: (pipeline: TransformationStep[]) => void;
+  addPipelineStep: (step: TransformationStep) => void;
+  removePipelineStep: (id: string) => void;
+  togglePipelineStep: (id: string) => void;
   
   // Workspace management
   createNewWorkspace: (name?: string) => void;
@@ -115,6 +137,7 @@ export const useStore = create<AppState>((set, get) => ({
   rowCount: 0,
   results: [],
   codeHistory: [],
+  pipeline: [],
   
   sidebarVisible: true,
   consoleVisible: true,
@@ -157,6 +180,28 @@ export const useStore = create<AppState>((set, get) => ({
   toggleSidebar: () => set((state) => ({ sidebarVisible: !state.sidebarVisible })),
   toggleConsole: () => set((state) => ({ consoleVisible: !state.consoleVisible })),
   
+  setPipeline: (pipeline) => {
+    set({ pipeline });
+    get().saveCurrentWorkspace();
+  },
+
+  addPipelineStep: (step) => {
+    set((state) => ({ pipeline: [...state.pipeline, step] }));
+    get().saveCurrentWorkspace();
+  },
+
+  removePipelineStep: (id) => {
+    set((state) => ({ pipeline: state.pipeline.filter(s => s.id !== id) }));
+    get().saveCurrentWorkspace();
+  },
+
+  togglePipelineStep: (id) => {
+    set((state) => ({
+      pipeline: state.pipeline.map(s => s.id === id ? { ...s, enabled: !s.enabled } : s)
+    }));
+    get().saveCurrentWorkspace();
+  },
+
   createNewWorkspace: (name = 'Nouveau projet Nuru') => {
     const id = crypto.randomUUID();
     set({
@@ -167,7 +212,8 @@ export const useStore = create<AppState>((set, get) => ({
       columns: [],
       rowCount: 0,
       results: [],
-      codeHistory: []
+      codeHistory: [],
+      pipeline: []
     });
     get().saveCurrentWorkspace();
   },
@@ -181,7 +227,8 @@ export const useStore = create<AppState>((set, get) => ({
       columns: data.columns,
       rowCount: data.rowCount,
       results: data.results,
-      codeHistory: data.codeHistory
+      codeHistory: data.codeHistory,
+      pipeline: data.pipeline || []
     });
   },
   
@@ -203,7 +250,8 @@ export const useStore = create<AppState>((set, get) => ({
       columns: state.columns,
       rowCount: state.rowCount,
       results: state.results,
-      codeHistory: state.codeHistory
+      codeHistory: state.codeHistory,
+      pipeline: state.pipeline
     };
     
     if (isDesktop()) {
@@ -246,7 +294,8 @@ export const useStore = create<AppState>((set, get) => ({
       columns: state.columns,
       rowCount: state.rowCount,
       results: state.results,
-      codeHistory: state.codeHistory
+      codeHistory: state.codeHistory,
+      pipeline: state.pipeline
     };
 
     const content = JSON.stringify(data, null, 2);
