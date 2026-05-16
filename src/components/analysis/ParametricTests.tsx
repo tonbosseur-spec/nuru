@@ -290,8 +290,8 @@ else:
                 if not cand and not excl: return [curr]
                 cliques = []
                 for v in list(cand):
-                    new_cand = [u for u in cand if adj[v, u]]
-                    new_excl = [u for u in excl if adj[v, u]]
+                    new_cand = [u for u in cand if u != v and adj[v, u]]
+                    new_excl = [u for u in excl if u != v and adj[v, u]]
                     cliques.extend(find_cliques(curr + [v], new_cand, new_excl))
                     cand.remove(v)
                     excl.append(v)

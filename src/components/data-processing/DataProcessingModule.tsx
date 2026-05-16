@@ -130,10 +130,16 @@ export function DataProcessingModule() {
 
       // Missing Values
       case 'REPLACE_NA_MEAN':
-        code = `${colRef} = ${colRef}.fillna(${colRef}.mean())`;
+        code = `
+if pd.api.types.is_numeric_dtype(${colRef}):
+    ${colRef} = ${colRef}.fillna(${colRef}.mean())
+`;
         break;
       case 'REPLACE_NA_MEDIAN':
-        code = `${colRef} = ${colRef}.fillna(${colRef}.median())`;
+        code = `
+if pd.api.types.is_numeric_dtype(${colRef}):
+    ${colRef} = ${colRef}.fillna(${colRef}.median())
+`;
         break;
       case 'REPLACE_NA_MODE':
         code = `
@@ -180,13 +186,17 @@ if pd.api.types.is_numeric_dtype(df[c]):
         break;
       case 'CONDITIONAL':
         // Simplified conditional: if col > value then x else y
-        // We'd need more complex params for a real one, but let's assume simple one for now
-        code = `df['${newName}'] = df['${column}'].apply(lambda x: ${value} if x else None)`;
+        code = `
+import numpy as np
+df['${newName}'] = np.where(df['${column}'] ${step.params.operator} ${typeof value === 'string' ? `'${value}'` : value}, ${typeof step.params.trueValue === 'string' ? `'${step.params.trueValue}'` : step.params.trueValue}, ${typeof step.params.falseValue === 'string' ? `'${step.params.falseValue}'` : step.params.falseValue})
+`;
         break;
       case 'CONCAT_COLS':
         const cols = Array.isArray(step.params.columns) ? step.params.columns : [];
-        const concatExpr = cols.map((c: string) => `df['${c}'].astype(str)`).join(' + " " + ');
-        code = `df['${newName}'] = ${concatExpr}`;
+        if (cols.length > 0) {
+            const concatExpr = cols.map((c: string) => `df['${c}'].astype(str)`).join(' + " " + ');
+            code = `df['${newName}'] = ${concatExpr}`;
+        }
         break;
 
       // Time
@@ -221,10 +231,36 @@ if pd.api.types.is_numeric_dtype(${colRef}):
 `;
         break;
 
-      // Filtering (Simplified)
+      // Filtering and Sorting
+      case 'FILTER_COMPLEX':
+        code = `df = df.query('${step.params.queryString.replace(/'/g, "\\'")}')`;
+        break;
       case 'SELECT_COLS':
         const selected = Array.isArray(step.params.columns) ? step.params.columns : [];
         if (selected.length > 0) code = `df = df[${JSON.stringify(selected)}]`;
+        break;
+      case 'SORT_MULTI':
+        const sortCols = Array.isArray(step.params.columns) ? step.params.columns : [];
+        const asc = step.params.ascending !== false;
+        if (sortCols.length > 0) code = `df = df.sort_values(by=${JSON.stringify(sortCols)}, ascending=${asc})`;
+        break;
+
+      // Reshaping
+      case 'GROUP_BY':
+        const grpCols = Array.isArray(step.params.columns) ? step.params.columns : [];
+        const aggFunc = step.params.aggFunc || 'mean';
+        if (grpCols.length > 0) code = `df = df.groupby(${JSON.stringify(grpCols)}).agg('${aggFunc}').reset_index()`;
+        break;
+      case 'PIVOT_TABLE':
+        if (step.params.indexCol && step.params.valueCol) {
+            code = `df = df.pivot_table(index='${step.params.indexCol}', values='${step.params.valueCol}', aggfunc='${step.params.aggFunc || 'mean'}').reset_index()`;
+        }
+        break;
+
+      // AI Features (Mocked code generation)
+      case 'AI_ANALYZE':
+      case 'AI_SUGGEST':
+        code = `# AI transformation placeholder\npass`;
         break;
 
       default:
